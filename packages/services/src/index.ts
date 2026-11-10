@@ -13,6 +13,7 @@ export {
 } from "./roles";
 export * from "./catalog-admin";
 export * from "./catalog-public";
+export * from "./customization";
 export { slugify } from "./slug";
 export {
   listStaff,

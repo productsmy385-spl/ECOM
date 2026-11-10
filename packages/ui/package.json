@@ -6,9 +6,19 @@
   "exports": {
     "./tokens.css": "./src/tokens.css",
     "./brand": "./src/brand.ts",
-    "./format": "./src/format.ts"
+    "./format": "./src/format.ts",
+    "./design": "./src/design/renderer.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ecom/validation": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19"
   }
 }
