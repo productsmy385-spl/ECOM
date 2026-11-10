@@ -34,8 +34,25 @@ Not in Phase 2:
 - Audit entries for *self-service* password changes. Better Auth handles those directly; a hook will add them in Phase 10.
 - Staff deletion. Deactivation is used instead, which keeps the audit history intact.
 
-## Phase 3: Public website ⬜
-`packages/validation` + `packages/services` (catalog). Bookly-inspired homepage (announcement bar, mega-nav, search, hero, rails, categories, reviews, newsletter, footer). `/shop` with filters and sorting. `/products/[slug]`. Database-driven search (tsvector + trigram). Admin product, category, brand and variant management (needed to have catalog data).
+## Phase 3: Public website + catalog management ✅ (2026-11-10)
+| Item | Status | Evidence |
+|---|---|---|
+| Catalog services: categories (2-level tree, cycle-safe), brands, products, variants, specs, images, publish rules, soft delete, stock ledger adjustments | ✅ | 19 integration tests |
+| Admin: Products list and editor, Categories, Brands, stock adjustment dialog | ✅ | Permission-gated per control |
+| ImageKit signed uploads (browser → ImageKit; HMAC-SHA1 signature, 30 min) | 🟡 | Built. Untested against real ImageKit until keys are provided; returns 503 "not configured" today. |
+| Storefront: header (announcement, search with suggestions, mega-nav, mobile drawer), homepage (hero, trust strip, categories, trending, best sellers, new arrivals, customisable, promo banners, brands, reviews), footer + newsletter | ✅ | Each section is hidden when it has no real data |
+| `/shop`: search, category (incl. sub-categories), brand, colour, size, material, price, rating, stock and tag filters; 6 sorts; pagination; facets; chips; mobile filter sheet | ✅ | |
+| Search: full-text (`tsvector`) + word-similarity trigram (typos) + brand/category/colour/material/SKU/spec matches | ✅ | "aviatr" → Aviator |
+| `/products/[slug]`: gallery, variant picker (shareable `?v=`), price/MRP/discount, coarse availability, delivery estimate, specs, reviews + breakdown, related, JSON-LD | ✅ | |
+| Quick view, `/categories`, `/about`, `/contact`, 404, `robots.txt`, `sitemap.xml` | ✅ | |
+| Dev-only demo catalog (`pnpm --filter @ecom/db seed:dev-catalog [--remove]`) | ✅ | Refuses production. `DEV-` SKUs, fictional brands, no images. |
+
+Deferred, deliberately:
+- **Cart, wishlist, account and buy buttons**: Phases 5–6. They aren't shown until they work.
+- **Customer review submission**: Phase 5 (needs accounts and delivered orders). Reviews are displayed now.
+- **Admin banner management**: Phase 7. Without banners the homepage uses its built-in brand hero.
+- **Caching**: storefront pages render dynamically for correctness. Redis/ISR caching is planned for Phase 10.
+- **Real product photography**: still needed. Placeholders read "Image coming soon".
 
 ## Phase 4: Customization engine ⬜
 Option configuration in admin. Customer configurator and canvas editor (layers, text, fonts, colour, image upload via signed ImageKit, reset, save, preview). Versioned designs.

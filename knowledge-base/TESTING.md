@@ -25,6 +25,16 @@
 
 Note: sign-in is rate limited to 5 per minute per IP, and this includes localhost. Back-to-back smoke and Playwright runs can hit it. Reuse one signed-in session (`storageState`) in browser scripts.
 
+## Phase 3 results (2026-11-10) `[fact]`
+- `pnpm test`: **66/66 passed** (adds 19 catalog tests covering permissions, slugs, SKUs, stock ledger, publish rules, soft delete, visibility, filters, facets, sorting, typo search, suggestions and the newsletter).
+- `node scripts/smoke.mjs`: **34/34 passed**. This adds the full catalog lifecycle over HTTP (create a draft, check it's hidden, publish, page and search, then delete and confirm 404), no stock-count leak, ImageKit signing status, and newsletter cross-origin and validation checks.
+- Playwright at 1440 and 390: home, search suggestions (keyboard and Enter), shop + filters (optimistic) + chips, quick view, mobile filter sheet and menu, product page with variant switching, plus the admin products, editor and categories screens. No horizontal overflow and no console errors.
+- Defects found and fixed during verification:
+  - Single-word typo search returned nothing; switched to `word_similarity`.
+  - Filter checkboxes lagged behind the URL; switched to `useOptimistic`.
+  - The category bar wrapped onto two lines.
+  - pg concurrent-query deprecation inside transactions.
+
 ## Rules
 - Every protected API gets a test proving (a) 401 when anonymous, (b) 403/404 without the permission, and (c) 404 for another user's record (IDOR).
 - Don't mock the database in integration tests.

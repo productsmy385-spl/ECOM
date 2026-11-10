@@ -129,6 +129,59 @@ let customerId = null;
   check("staff creation is in the audit log", audit.items?.[0]?.entityId === cj.staff?.id);
 }
 
+// 6c. Catalogue end-to-end (Phase 3): admin creates → draft hidden → publish → storefront → delete
+{
+  const anon = await get(`${ADMIN}/admin/api/products`);
+  check("product API rejects anonymous requests", anon.status === 401, `HTTP ${anon.status}`);
+
+  const opts = await (await get(`${ADMIN}/admin/api/products/options`, staffCookie)).json();
+  const categoryId = opts.categories?.[0]?.id;
+  const tag = `Smoke ${Date.now().toString(36)}`;
+  const created = await post(
+    ADMIN,
+    "/admin/api/products",
+    {
+      name: `${tag} Frame`,
+      categoryId,
+      taxRateBps: 1200,
+      variants: [{ sku: `SMOKE-${Date.now().toString(36)}`.toUpperCase(), name: "Std", price: 123400, initialStock: 3 }],
+    },
+    { cookie: staffCookie },
+  );
+  const product = await created.json().catch(() => ({}));
+  check("staff can create a product (draft)", created.status === 201 && product.status === "draft", `HTTP ${created.status}`);
+
+  const hidden = await get(`${WEB}/products/${product.slug}`);
+  check("draft product is not visible in the store (404)", hidden.status === 404, `HTTP ${hidden.status}`);
+
+  const pub = await post(ADMIN, `/admin/api/products/${product.id}/status`, { status: "published" }, { cookie: staffCookie });
+  check("product can be published", pub.status === 200, `HTTP ${pub.status}`);
+
+  const page = await get(`${WEB}/products/${product.slug}`);
+  const html = await page.text();
+  check("published product page renders with price", page.status === 200 && html.includes("1,234"), `HTTP ${page.status}`);
+
+  const search = await (await get(`${WEB}/shop?q=${encodeURIComponent(tag)}`)).text();
+  check("published product is found by storefront search", search.includes(`${tag} Frame`));
+
+  const api = await (await get(`${WEB}/api/products/${product.slug}`)).json();
+  check("public product API exposes availability, not stock counts", !!api.variants?.[0]?.availability && !("onHand" in (api.variants?.[0] ?? {})));
+
+  const del = await fetch(`${ADMIN}/admin/api/products/${product.id}`, { method: "DELETE", headers: { Origin: ADMIN, Cookie: staffCookie } });
+  const gone = await get(`${WEB}/products/${product.slug}`);
+  check("deleted product disappears from the store", del.status === 200 && gone.status === 404, `HTTP ${del.status}/${gone.status}`);
+
+  const ik = await get(`${ADMIN}/admin/api/uploads/imagekit-auth`, staffCookie);
+  check("image upload signing responds (503 = not configured yet, 200 = configured)", ik.status === 503 || ik.status === 200, `HTTP ${ik.status}`);
+
+  const crossNl = await post(WEB, "/api/newsletter", { email: "x@example.test" }, { origin: "https://evil.example" });
+  check("newsletter rejects cross-origin posts", crossNl.status === 403, `HTTP ${crossNl.status}`);
+  const badNl = await post(WEB, "/api/newsletter", { email: "not-an-email" });
+  check("newsletter validates the email", badNl.status === 422, `HTTP ${badNl.status}`);
+  const missing = await get(`${WEB}/api/products/no-such-product`);
+  check("unknown product returns 404", missing.status === 404, `HTTP ${missing.status}`);
+}
+
 // 7. Sign-out invalidates the session
 {
   const r = await post(ADMIN, "/admin/api/auth/sign-out", {}, { cookie: staffCookie });

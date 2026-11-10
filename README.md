@@ -28,6 +28,13 @@ pnpm dev                      # web :3000 + admin :3001
 
 Sign in at http://localhost:3001/admin/login with the `SEED_SUPERADMIN_*` credentials.
 
+Optional, **development only**: load a demo catalog (12 products, fictional brands, no images) so the storefront has something to show. This is refused in production.
+
+```bash
+pnpm --filter @ecom/db seed:dev-catalog            # add
+pnpm --filter @ecom/db seed:dev-catalog --remove   # remove
+```
+
 ## Checks
 ```bash
 pnpm test                     # unit + integration (uses ecom_test DB)

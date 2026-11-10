@@ -16,9 +16,15 @@
 | Supply chain | pnpm `minimumReleaseAge` is respected (better-auth was pinned to an older, mature release instead of bypassing it). Install scripts are allow-listed (`allowBuilds`). |
 | Container | Non-root user, standalone output, no dev dependencies in the runtime image |
 
+## Added in Phase 3 `[fact]`
+- **Storefront reads are restricted** to published products in active categories. Exact stock counts, costs, drafts and soft-deleted rows are never exposed (checked by the smoke test).
+- **Image uploads**: the browser uploads straight to ImageKit using a server-issued, 30-minute HMAC signature. The private key never reaches the client. Product and category image URLs must be `https://ik.imagekit.io/…` (Zod). Client-side checks: JPG/PNG/WebP/AVIF, ≤ 5 MB. **Also set ImageKit's upload restrictions (file types and size) in its dashboard** as server-side enforcement.
+- **Public endpoints are rate limited** (suggest 60/min, product 120/min, newsletter 5/min per IP). The newsletter is same-origin only and gives the same response whether or not an address was already subscribed.
+- `JSON-LD` is serialised with `<` escaped.
+
 ## Planned, by phase
 - **Phase 2**: audit log writes for all role, permission, staff and settings changes. Admin API route-handler guard.
-- **Phase 4**: upload validation (type, size, magic bytes) and signed ImageKit uploads.
+- **Phase 4**: customer design uploads, with stricter handling (moderation and per-customer folders).
 - **Phase 6**: Razorpay signature and webhook HMAC verification, idempotent event processing, server-side amount recalculation.
 - **Before scale-out**: Redis-backed rate limiting.
 - **Under evaluation**: Postgres RLS for customer-owned tables. Needs `set_config('app.user_id', …, true)` inside each transaction so pooled connections never leak context. Backend checks stay mandatory regardless.

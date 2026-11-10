@@ -17,7 +17,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
-  transpilePackages: ["@ecom/auth", "@ecom/db", "@ecom/rbac", "@ecom/ui"],
+  transpilePackages: ["@ecom/auth", "@ecom/db", "@ecom/rbac", "@ecom/services", "@ecom/ui", "@ecom/validation"],
   poweredByHeader: false,
   images: {
     remotePatterns: [{ protocol: "https", hostname: "ik.imagekit.io" }],

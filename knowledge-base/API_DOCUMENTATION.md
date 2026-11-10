@@ -48,14 +48,37 @@ Lists return `{ items, page, pageSize, total, totalPages }`. Query parameters: `
 | `GET /audit-logs?action=&entityType=&actorId=&from=&to=&page=` | `audit_logs.view` | Newest first, with actor details |
 | `GET /audit-logs?facets=1` | `audit_logs.view` | Distinct actions and entity types, for filters |
 
+### Catalog (Phase 3)
+Money is in **paise** everywhere in the API. Prices are GST-inclusive.
+
+| Method & path | Permission | Notes |
+|---|---|---|
+| `GET /categories` · `POST` · `PATCH /:id` · `DELETE /:id` | view: `products.view`/`categories.manage`; write: `categories.manage` | Two levels. Parent loops are rejected. Delete only when empty (soft delete; frees the slug). |
+| `GET /brands` · `POST` · `PATCH /:id` · `DELETE /:id` | same | Delete only when no products |
+| `GET /products?q=&status=&categoryId=&page=` | `products.view` | `q` matches name or SKU |
+| `GET /products/options` | catalog view | Category and brand choices |
+| `POST /products` | `products.create` | Always created as a **draft**. Body: `name, categoryId, brandId?, taxRateBps (0/500/1200/1800/2800), variants[] (sku, name, price, compareAtPrice?, color?, colorHex?, size?, material?, initialStock?), attributes[], images[] (ImageKit URLs only)`. `initialStock > 0` also needs `inventory.manage`. |
+| `GET /products/:id` · `PUT /products/:id` | `products.view` · `products.update` | PUT replaces specs and images. Variants are matched by `id`; omitted variants are soft-deleted. SKUs are never reusable. |
+| `POST /products/:id/status` | `products.publish` | `{ status: draft \| published \| archived }`. Publishing needs at least one active priced variant and an active category. |
+| `DELETE /products/:id` | `products.delete` | Soft delete. Orders keep their references. |
+| `POST /variants/:id/stock` | `inventory.manage` | `{ delta, note }`. Written to the ledger. Can't drop below reserved (409). |
+| `GET /uploads/imagekit-auth` | product or category write | `{ token, expire, signature, publicKey, urlEndpoint }`, or 503 if ImageKit isn't configured |
+
 ### Auth (Better Auth)
 `/admin/api/auth/*`: sign-in, sign-out, `request-password-reset`, `reset-password`, `change-password`, get-session. See AUTHENTICATION.md.
 
 ### Health
 `GET /admin/api/health`. Returns 200, or 503 when the database is unreachable.
 
-## Storefront API: `{WEB_URL}/api/*`
-- `/api/auth/*`: customer auth
-- `/api/health`
+## Storefront API: `{WEB_URL}/api/*` (public)
+Rate limits are per IP and in memory (see SECURITY.md).
 
-Catalog, cart and order endpoints arrive in Phases 3–6.
+| Method & path | Limit | Notes |
+|---|---|---|
+| `GET /api/search/suggest?q=` | 60/min | `{ products[≤6], categories[≤4], brands[≤4] }`. Queries shorter than 2 characters return nothing. |
+| `GET /api/products/:slug` | 120/min | Published products only. Availability is coarse (`in_stock \| low_stock \| out_of_stock`); exact stock counts are never exposed. |
+| `POST /api/newsletter` | 5/min | `{ email }`. Same-origin only. Idempotent, and returns the same response for new and existing addresses. |
+| `/api/auth/*` | per-route | Customer auth |
+| `GET /api/health` | none | |
+
+Storefront pages read through `@ecom/services` (`searchCatalog`, `getProductBySlug`, `getHomeData`) and only ever show published products in active categories. Cart and order endpoints arrive in Phases 5–6.
