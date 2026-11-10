@@ -30,7 +30,15 @@
 ## Bootstrapping the first Super Admin
 Set `SEED_SUPERADMIN_EMAIL` / `SEED_SUPERADMIN_PASSWORD` / `SEED_SUPERADMIN_NAME`, then run `pnpm db:seed` (or `node db/seed.mjs` in the production image). The seed creates the user only if the email doesn't exist yet. In production the password must be at least 12 characters. Change it after first login; a password-change UI arrives in Phase 2.
 
+## Staff invitations (Phase 2) `[fact]`
+1. An admin creates the staff member (`POST /admin/api/staff`). The account is created **without a password**.
+2. The handler calls Better Auth `requestPasswordReset`. Because the user has no credential account yet, the email is worded as an invitation ("Set your password").
+3. The link (single use, **24 h** in admin, 30 min on the storefront) opens `/admin/reset-password?token=…`. Setting the password creates the credential account (Better Auth `utils/password.mjs:35`), marks the email verified, and revokes any sessions.
+4. "Resend invitation" or "Send password reset" on the staff page issues a fresh link.
+
+Staff passwords need at least **10** characters, enforced by Better Auth for the admin app. The forms also require letters plus digits. Customers need at least 8.
+
 ## Not yet built
 - Customer sign-in and sign-up pages, account area and guest checkout: Phase 5
-- Staff invitation, password change and session list: Phase 2
+- A staff "active sessions" list: Phase 10
 - Phone or SMS OTP: needs an SMS provider. Not yet decided; see OPEN_QUESTIONS.

@@ -18,6 +18,13 @@
 - Playwright visual pass at 1440×900 and 390×844 for storefront, admin login (including the wrong-password error), dashboard and mobile drawer. No horizontal overflow. The only console error is the expected 401 from the wrong-password step.
 - `pnpm -r typecheck`, `pnpm -r lint` and `next build` for both apps: clean.
 
+## Phase 2 results (2026-11-10) `[fact]`
+- `pnpm test`: **47/47 passed** (17 RBAC unit, 9 auth integration, 21 staff/roles/audit integration).
+- `node scripts/smoke.mjs` against fresh production builds: **22/22 passed**. This adds admin API 401, cross-origin write 403, 422 field errors, malformed id 404, customer id 404 (IDOR), staff creation with invitation, and the matching audit entry.
+- Lint, typecheck and `next build`: clean.
+
+Note: sign-in is rate limited to 5 per minute per IP, and this includes localhost. Back-to-back smoke and Playwright runs can hit it. Reuse one signed-in session (`storageState`) in browser scripts.
+
 ## Rules
 - Every protected API gets a test proving (a) 401 when anonymous, (b) 403/404 without the permission, and (c) 404 for another user's record (IDOR).
 - Don't mock the database in integration tests.

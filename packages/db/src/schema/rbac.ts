@@ -1,16 +1,22 @@
-import { boolean, index, pgTable, primaryKey, text, uuid, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, index, pgTable, primaryKey, text, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { createdAt, id, timestamps } from "./_helpers";
 import { users } from "./users";
 
-export const roles = pgTable("roles", {
-  id: id(),
-  key: varchar("key", { length: 64 }).notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description"),
-  /** System roles are seeded and cannot be deleted or renamed by key. */
-  isSystem: boolean("is_system").notNull().default(false),
-  ...timestamps(),
-});
+export const roles = pgTable(
+  "roles",
+  {
+    id: id(),
+    key: varchar("key", { length: 64 }).notNull().unique(),
+    name: text("name").notNull(),
+    description: text("description"),
+    /** System roles are seeded and cannot be deleted or renamed by key. */
+    isSystem: boolean("is_system").notNull().default(false),
+    ...timestamps(),
+  },
+  // Names are unique case-insensitively so the staff role picker is unambiguous.
+  (t) => [uniqueIndex("roles_name_lower_uq").on(sql`lower(${t.name})`)],
+);
 
 export const permissions = pgTable("permissions", {
   id: id(),

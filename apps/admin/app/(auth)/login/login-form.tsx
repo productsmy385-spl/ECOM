@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { AlertCircle } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -53,6 +54,11 @@ export function LoginForm() {
       )}
       <Input label="Email" name="email" type="email" autoComplete="username" required placeholder="you@company.com" />
       <Input label="Password" name="password" type="password" autoComplete="current-password" required />
+      <div className="-mt-1 text-right text-sm">
+        <Link href="/forgot-password" className="text-link hover:underline">
+          Forgot password?
+        </Link>
+      </div>
       <Button type="submit" className="w-full" size="lg" isLoading={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>

@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { hasAnyRole } from "./actor";
 import { sendEmail, simpleEmail } from "./email";
 
@@ -49,18 +49,41 @@ export function createAuth(app: AppKind) {
     emailAndPassword: {
       enabled: true,
       disableSignUp: app === "admin",
-      minPasswordLength: 8,
+      // Staff accounts carry more power, so their minimum is stricter.
+      minPasswordLength: app === "admin" ? 10 : 8,
       maxPasswordLength: 128,
       autoSignIn: true,
       revokeSessionsOnPasswordReset: true,
-      resetPasswordTokenExpiresIn: 60 * 30,
+      // Admin links double as staff invitations, so they live longer (single-use either way).
+      resetPasswordTokenExpiresIn: app === "admin" ? 60 * 60 * 24 : 60 * 30,
       sendResetPassword: async ({ user, url }) => {
-        const m = simpleEmail(
-          "Reset your password",
-          "We received a request to reset your password. The link expires in 30 minutes. If you did not ask for this, ignore this email.",
-          { label: "Reset password", url },
-        );
-        await sendEmail({ to: user.email, subject: "Reset your password", ...m });
+        const [cred] = await db
+          .select({ id: accounts.id })
+          .from(accounts)
+          .where(and(eq(accounts.userId, user.id), eq(accounts.providerId, "credential")))
+          .limit(1);
+        const brand = process.env.NEXT_PUBLIC_BRAND_NAME ?? "Store";
+        const ttl = app === "admin" ? "24 hours" : "30 minutes";
+        const m = cred
+          ? simpleEmail(
+              "Reset your password",
+              `We received a request to reset your password. The link expires in ${ttl} and works once. If you did not ask for this, ignore this email.`,
+              { label: "Reset password", url },
+            )
+          : simpleEmail(
+              `You've been invited to ${brand} Admin`,
+              `An administrator created a staff account for you. Choose a password to activate it. The link expires in ${ttl} and works once.`,
+              { label: "Set your password", url },
+            );
+        await sendEmail({
+          to: user.email,
+          subject: cred ? "Reset your password" : `Your ${brand} staff account`,
+          ...m,
+        });
+      },
+      // Following an emailed link proves the address.
+      onPasswordReset: async ({ user }) => {
+        await db.update(users).set({ emailVerified: true }).where(eq(users.id, user.id));
       },
     },
     session: {

@@ -13,7 +13,12 @@
     "@ecom/auth": "workspace:*",
     "@ecom/db": "workspace:*",
     "@ecom/rbac": "workspace:*",
+    "@ecom/services": "workspace:*",
     "@ecom/ui": "workspace:*",
+    "@ecom/validation": "workspace:*",
+    "@hookform/resolvers": "^7.0.5",
+    "@radix-ui/react-alert-dialog": "^1.2.1",
+    "@radix-ui/react-dialog": "^1.3.1",
     "@tanstack/react-query": "^5.100.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -23,9 +28,11 @@
     "next-themes": "^0.4.6",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.91.0",
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",

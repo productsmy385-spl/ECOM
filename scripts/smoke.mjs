@@ -87,6 +87,48 @@ const custPassword = "Smoke#Customer1";
   check("cross-origin sign-in is rejected", r.status === 403, `HTTP ${r.status}`);
 }
 
+// 6b. Admin REST API (Phase 2)
+let customerId = null;
+{
+  const anon = await get(`${ADMIN}/admin/api/staff`);
+  check("staff API rejects anonymous requests", anon.status === 401, `HTTP ${anon.status}`);
+
+  const list = await get(`${ADMIN}/admin/api/staff`, staffCookie);
+  const body = await list.json().catch(() => ({}));
+  check("staff API lists staff for a signed-in Super Admin", list.status === 200 && Array.isArray(body.items), `HTTP ${list.status}`);
+
+  const cross = await fetch(`${ADMIN}/admin/api/roles`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: "https://evil.example", Cookie: staffCookie },
+    body: JSON.stringify({ name: "Evil role" }),
+  });
+  check("cross-origin API write is rejected", cross.status === 403, `HTTP ${cross.status}`);
+
+  const invalid = await post(ADMIN, "/admin/api/staff", { name: "", email: "bad", roleIds: [] }, { cookie: staffCookie });
+  const inv = await invalid.json().catch(() => ({}));
+  check("invalid staff input returns 422 with field errors", invalid.status === 422 && !!inv.fieldErrors?.email, `HTTP ${invalid.status}`);
+
+  const bogus = await get(`${ADMIN}/admin/api/staff/not-a-uuid`, staffCookie);
+  check("malformed ids return 404", bogus.status === 404, `HTTP ${bogus.status}`);
+
+  // The storefront customer created above must be invisible to staff management (IDOR).
+  const me = await fetch(`${WEB}/api/auth/get-session`, { headers: { Cookie: (await post(WEB, "/api/auth/sign-in/email", { email: custEmail, password: custPassword }).then(cookiesFrom)) } });
+  customerId = (await me.json().catch(() => null))?.user?.id ?? null;
+  if (customerId) {
+    const idor = await get(`${ADMIN}/admin/api/staff/${customerId}`, staffCookie);
+    check("customer records are not reachable via the staff API (404)", idor.status === 404, `HTTP ${idor.status}`);
+  } else check("customer records are not reachable via the staff API (404)", false, "could not resolve customer id");
+
+  const roles = await (await get(`${ADMIN}/admin/api/roles`, staffCookie)).json();
+  const staffRole = roles.find?.((r) => r.key === "staff");
+  const created = await post(ADMIN, "/admin/api/staff", { name: "Smoke Staff", email: `smoke.staff.${Date.now()}@example.test`, roleIds: [staffRole?.id] }, { cookie: staffCookie });
+  const cj = await created.json().catch(() => ({}));
+  check("Super Admin can create staff and an invitation is sent", created.status === 201 && cj.invite?.sent === true && cj.staff?.hasPassword === false, `HTTP ${created.status}`);
+
+  const audit = await (await get(`${ADMIN}/admin/api/audit-logs?action=staff.create&pageSize=1`, staffCookie)).json();
+  check("staff creation is in the audit log", audit.items?.[0]?.entityId === cj.staff?.id);
+}
+
 // 7. Sign-out invalidates the session
 {
   const r = await post(ADMIN, "/admin/api/auth/sign-out", {}, { cookie: staffCookie });

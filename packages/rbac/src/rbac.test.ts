@@ -4,6 +4,7 @@ import {
   ALL_PERMISSIONS,
   assertCanAssignRole,
   assertCanEditRolePermissions,
+  assertCanManageTarget,
   AuthenticationError,
   AuthorizationError,
   can,
@@ -129,6 +130,15 @@ describe("privilege escalation", () => {
     expect(() =>
       assertCanAssignRole(superAdmin, "other", "super_admin", SYSTEM_ROLES.super_admin.permissions),
     ).not.toThrow();
+  });
+
+  it("cannot manage a Super Admin unless Super Admin, nor anyone more powerful", () => {
+    expect(() => assertCanManageTarget(admin, ["super_admin"], ALL_PERMISSIONS)).toThrow(/Super Admin/);
+    expect(() => assertCanManageTarget(superAdmin, ["super_admin"], ALL_PERMISSIONS)).not.toThrow();
+    expect(() =>
+      assertCanManageTarget(admin, ["custom"], ["settings.manage" as Permission]),
+    ).toThrow(/more access/);
+    expect(() => assertCanManageTarget(admin, ["designer"], SYSTEM_ROLES.designer.permissions)).not.toThrow();
   });
 
   it("cannot assign a role with more access than the actor has", () => {

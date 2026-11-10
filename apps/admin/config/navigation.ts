@@ -1,6 +1,6 @@
 import type { Permission } from "@ecom/rbac";
 import type { LucideIcon } from "lucide-react";
-import { LayoutDashboard } from "lucide-react";
+import { KeyRound, LayoutDashboard, ScrollText, ShieldCheck, Users } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -27,6 +27,15 @@ export const navigation: NavGroup[] = [
   {
     label: "Overview",
     items: [{ title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, anyOf: ["dashboard.view"] }],
+  },
+  {
+    label: "Administration",
+    items: [
+      { title: "Staff", href: "/staff", icon: Users, anyOf: ["staff.view"] },
+      { title: "Roles", href: "/roles", icon: ShieldCheck, anyOf: ["roles.manage", "permissions.manage", "staff.view"] },
+      { title: "Permissions", href: "/permissions", icon: KeyRound, anyOf: ["permissions.manage", "roles.manage"] },
+      { title: "Audit Logs", href: "/audit-logs", icon: ScrollText, anyOf: ["audit_logs.view"] },
+    ],
   },
 ];
 

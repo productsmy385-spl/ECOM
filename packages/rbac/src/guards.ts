@@ -111,6 +111,25 @@ export function assertCanAssignRole(
   }
 }
 
+/**
+ * May `actor` edit or deactivate a staff member who holds `targetRoles` / `targetPermissions`?
+ * - nobody but a Super Admin manages a Super Admin
+ * - nobody manages someone with access the actor does not have (no "power over the powerful")
+ */
+export function assertCanManageTarget(
+  actor: Actor,
+  targetRoles: readonly string[],
+  targetPermissions: readonly Permission[],
+): void {
+  requirePermission(actor, "staff.manage");
+  if (targetRoles.includes(SUPER_ADMIN) && !isSuperAdmin(actor)) {
+    throw new AuthorizationError("Only a Super Admin can manage another Super Admin.");
+  }
+  if (targetPermissions.some((p) => !can(actor, p))) {
+    throw new AuthorizationError("You cannot manage a staff member who has more access than you.");
+  }
+}
+
 /** Escalation-capable permissions held by a role (for UI warnings and audit emphasis). */
 export function escalationPermissionsIn(perms: readonly Permission[]) {
   return perms.filter((p) => ESCALATION_PERMISSIONS.includes(p));

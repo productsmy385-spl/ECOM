@@ -2,7 +2,8 @@
 
 import { authClient } from "@/lib/auth-client";
 import { cn, getInitials } from "@/lib/utils";
-import { ChevronDown, LogOut, ShieldCheck } from "lucide-react";
+import { ChevronDown, LogOut, ShieldCheck, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -91,7 +92,13 @@ export function UserMenu() {
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>
             <p className="mt-1 truncate text-2xs text-muted-foreground">{roleLabel}</p>
           </div>
-          <div className="pt-1">
+          <div className="py-1">
+            <Link href="/account" role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
+              <UserRound className="h-4 w-4 text-muted-foreground" />
+              My account
+            </Link>
+          </div>
+          <div className="border-t border-border pt-1">
             <button
               type="button"
               role="menuitem"

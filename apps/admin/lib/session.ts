@@ -1,7 +1,7 @@
 import "server-only";
 import { loadActor } from "@ecom/auth";
 import { db, roles } from "@ecom/db";
-import { type Actor, can, isSuperAdmin, type Permission } from "@ecom/rbac";
+import { type Actor, can, canAny, isSuperAdmin, type Permission } from "@ecom/rbac";
 import { inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -56,5 +56,12 @@ export async function requireStaff(permission?: Permission): Promise<StaffSessio
   const s = await getStaffSession();
   if (!s) redirect("/login");
   if (permission && !can(s.actor, permission)) redirect("/forbidden");
+  return s;
+}
+
+/** Page guard for screens reachable with any one of several permissions. */
+export async function requireStaffAny(permissions: Permission[]): Promise<StaffSession> {
+  const s = await requireStaff();
+  if (!canAny(s.actor, permissions)) redirect("/forbidden");
   return s;
 }

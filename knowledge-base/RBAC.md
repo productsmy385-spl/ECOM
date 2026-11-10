@@ -47,15 +47,29 @@ Source of truth for **who has what at runtime**: the database (`roles`, `role_pe
 3. Assigning roles requires `staff.manage`. You cannot change **your own** roles.
 4. Only a Super Admin can grant or revoke `super_admin`.
 5. You cannot assign a role with more access than your own.
-6. Every role and permission change writes an `audit_logs` row (Phase 2).
+6. You cannot edit or deactivate someone who holds access you lack. Only a Super Admin manages another Super Admin (`assertCanManageTarget`).
+7. At least one active Super Admin must always remain. The check locks every Super Admin assignment row (`FOR UPDATE`), so two Super Admins demoting each other at the same time cannot leave zero.
+8. Every staff, role and permission change writes an `audit_logs` row **in the same transaction**. A denied action writes nothing.
+
+## Management UI (Phase 2)
+| Route | Permission |
+|---|---|
+| `/admin/staff`, `/staff/[id]` | `staff.view` (editing needs `staff.manage`) |
+| `/admin/staff/new` | `staff.manage` |
+| `/admin/roles` | any of `roles.manage`, `permissions.manage`, `staff.view` |
+| `/admin/permissions` | `permissions.manage` (or read-only with `roles.manage`) |
+| `/admin/audit-logs` | `audit_logs.view` |
+
+The UI mirrors the rules for clarity: locked roles show the reason, and the matrix disables what you can't grant. The server enforces every rule independently.
 
 ## Where it is enforced
 - **Admin pages**: `requireStaff("<perm>")` at the top of every page.
-- **Admin APIs** (Phase 2 onwards): the same guard inside each route handler. Never in middleware alone.
+- **Admin APIs**: `apiRoute` requires a staff session, and each `@ecom/services` function checks its own permission. Never in middleware alone.
 - **Customer APIs**: the identity always comes from the verified session. Customer IDs supplied by the browser are ignored.
 - **Dashboard**: each metric is computed only if the actor holds the permission that reveals it (`lib/queries/dashboard.ts`).
 
 ## Tests
-- `packages/rbac/src/rbac.test.ts`: 16 unit tests covering the matrix invariants, guards, assignment scope, ownership and escalation.
+- `packages/rbac/src/rbac.test.ts`: 17 unit tests covering the matrix invariants, guards, assignment scope, ownership and escalation.
+- `packages/services/src/staff-roles.integration.test.ts`: 21 tests covering management permissions, escalation, last Super Admin, session revocation, IDOR, audit and the invite flow.
 - `packages/auth/src/auth.integration.test.ts`: 9 tests on the real DB, covering staff-only admin sessions, suspended accounts, no self-promotion and exact permission loading.
 - `scripts/smoke.mjs`: over HTTP, a customer cookie does not open admin, and a customer is refused an admin session.

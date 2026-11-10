@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
   basePath: "/admin",
   output: "standalone",
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
-  transpilePackages: ["@ecom/auth", "@ecom/db", "@ecom/rbac", "@ecom/ui"],
+  transpilePackages: ["@ecom/auth", "@ecom/db", "@ecom/rbac", "@ecom/services", "@ecom/ui", "@ecom/validation"],
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
