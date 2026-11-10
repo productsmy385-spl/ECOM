@@ -1,38 +1,57 @@
 # Deployment (Railway)
 
-Railway hosts three services in one project: **Postgres**, **web**, **admin** (plus **Redis** from Phase 6). Both app services build from this repo with the root `Dockerfile`.
+**Live since 2026-11-10** `[fact]`
+| | URL |
+|---|---|
+| Storefront (`ECOM` service) | https://ecom-production-f9860cea.up.railway.app |
+| Admin (`admin` service) | https://admin-production-87fd65e8.up.railway.app/admin |
+| Health | `/api/health` · `/admin/api/health` (both report DB status) |
 
-## One-time setup
-1. Create a Railway project and add the **PostgreSQL** plugin. Enable backups.
-2. Create service **web** from the GitHub repo:
-   - Config file: `railway.toml` (the default)
-   - Variables: `APP=web`, `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `BETTER_AUTH_SECRET`, `WEB_URL`, `ADMIN_URL`, and the brand and email variables
-   - Generate a domain, then set `WEB_URL` to it.
-3. Create service **admin** from the same repo:
-   - Settings → Config-as-code path: `railway.admin.toml`
-   - Variables: the same as web, but `APP=admin`. Use the **same** `BETTER_AUTH_SECRET`.
-   - Domain: either a separate domain (set `ADMIN_URL`), or put both behind one domain with `/admin/*` routed to this service.
-4. First deploy of **web** runs migrations automatically. Then bootstrap the owner account once:
-   ```
-   railway run --service web node db/seed.mjs   # with SEED_SUPERADMIN_* set
-   ```
-   Remove the `SEED_SUPERADMIN_*` variables afterwards.
+Railway project **zippy-joy**, environment **production**, region Southeast Asia. Services: `ECOM` (storefront), `admin`, `Postgres` (with volume). Both app services deploy from GitHub `productsmy385-spl/ECOM` (branch `main`) on every push that touches their watch paths.
 
-## How a deploy works `[fact]` for config, `[assumption]` until first real Railway deploy
-1. Docker build: `pnpm install --frozen-lockfile`, then the migrate/seed bundles, then `next build` for `$APP`. Runtime secrets aren't needed at this stage.
-2. **web only**: `preDeployCommand = node db/migrate.mjs` runs once in the new image, **before** traffic moves. It takes a Postgres advisory lock, so overlapping deploys queue rather than race. If a migration fails, the deploy is aborted and the old version keeps serving.
-3. Railway health checks `/api/health` (web) or `/admin/api/health` (admin). Both return 503 if the DB is unreachable.
-4. Traffic switches to the new version.
+## Infrastructure as code: `.railway/railway.ts`
+This file is the source of truth for both app services: build (root `Dockerfile`), health checks, pre-deploy migration, replicas and variables. It **replaced** `railway.toml` / `railway.admin.toml` (Railway's config-as-code is deprecated after 2026-12-01).
+- It's a **named partial** (`export const partial = "ECOM"`). It manages only `ECOM` and `admin`. **Postgres isn't declared**: it's referenced as `${{Postgres.DATABASE_URL}}`, so an apply can never modify or delete the database.
+- Variables are **managed**: the file owns them. Secrets use `preserve()` and are set out-of-band, never committed.
+- The admin service references the storefront's secrets (`${{ECOM.BETTER_AUTH_SECRET}}` etc.), so both apps always share one value.
 
-Migrations run from exactly one service and never at app start-up, so multiple instances never race. Production never uses `drizzle-kit push`. Migrations are additive only (see DATABASE.md).
+```powershell
+# Windows: the SDK's CLI-version check can't execute the npm shim. Point it at the binary first:
+$env:_ = "$env:APPDATA\npm\node_modules\@railway\cli\bin\railway.exe"
+railway config plan     # safe preview: always read it; must say "0 to destroy" unless intended
+railway config apply    # apply the reviewed plan
+```
 
-## Verified locally (2026-11-10)
-- Production builds of both apps: OK
-- `node packages/db/dist/migrate.mjs` (the same bundle the image runs): OK, no-op on an up-to-date DB
-- `docker build --build-arg APP=web .`: OK (74 MB image). In the container, `node db/migrate.mjs` (the preDeployCommand) succeeded, `/api/health` returned 200 with the DB connected, the home page rendered DB categories, `/api/auth/ok` responded, and the process runs as the non-root user `app`.
-- The `APP=admin` image uses the same Dockerfile but has not been built separately yet.
-- Not yet verified on Railway itself: needs your Railway project and credentials.
+## How a deploy works `[fact]`, verified 2026-11-10
+1. Push to `main`. Railway builds the `Dockerfile` with `APP=web|admin` and `NEXT_PUBLIC_*` as build args.
+   - **Builds need no database or secrets.** Storefront pages render at request time (`dynamic = "force-dynamic"` in the root layout), and auth is created lazily.
+2. **Storefront only**: `preDeployCommand: node db/migrate.mjs` applies pending migrations once, before traffic, under an advisory lock. A failure aborts the deploy and the old version keeps serving.
+3. The health check must return 200, which needs the DB to be reachable.
+4. Traffic switches. Containers run as the non-root user `app` and listen on Railway's injected `PORT` (8080).
+
+## Secrets and one-off tasks
+| Task | Command |
+|---|---|
+| Set or rotate a secret | `railway variable set BETTER_AUTH_SECRET --stdin --service ECOM` (rotating signs everyone out) |
+| Add Resend/ImageKit keys | Set them on `ECOM`; `admin` picks them up through references |
+| Bootstrap or reset the first Super Admin | Run the seed bundle locally against Postgres's **public** URL (below). The seed is idempotent and creates the owner only if the email doesn't exist. |
+
+Bootstrap procedure used on 2026-11-10 (no SSH key needed; nothing is printed or saved):
+```powershell
+pnpm --filter @ecom/db bundle
+# read DATABASE_PUBLIC_URL from `railway variables --service Postgres --kv` into $env:DATABASE_URL,
+# set SEED_SUPERADMIN_EMAIL / _PASSWORD / _NAME and NODE_ENV=production in the same shell, then:
+node packages\db\dist\seed.mjs
+```
+Alternatively, register an SSH key (`railway ssh keys add`) and run `railway ssh --service ECOM -- node db/seed.mjs` inside the container.
 
 ## Rollback
-- **App**: redeploy the previous deployment in Railway (one click).
-- **Schema**: migrations are forward-only. Fix forward with a new migration. Restore from backup only for data loss (see DATABASE.md).
+- **App**: redeploy the previous deployment in Railway (one click), or `git revert` and push.
+- **Infrastructure**: `git revert` the `.railway/railway.ts` change, then `railway config plan` / `apply`.
+- **Schema**: migrations are forward-only. Fix forward. Restore from a Postgres backup only for data loss (see DATABASE.md). **Enable scheduled backups on the Postgres service** (not yet done; this needs a dashboard action by the owner).
+
+## Known gaps
+- No custom domain yet. Both apps use `*.up.railway.app`. When adding one, update the `WEB_URL`/`ADMIN_URL` references (they follow `RAILWAY_PUBLIC_DOMAIN`, so a custom domain needs explicit values).
+- Email (Resend) isn't configured, so invitation and reset emails are logged as errors and not sent in production.
+- ImageKit isn't configured, so uploads report "not configured".
+- In-memory rate limits are fine for 1 replica each. Move them to Redis before scaling out.

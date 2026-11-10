@@ -15,7 +15,7 @@ Status key: ✅ done and verified · 🟡 partly done · ⬜ not started. Progre
 | Admin shell from DropX (pruned, rebranded, permission-filtered nav, real user menu and sign-out) | ✅ | screenshots at 1440 and 390 |
 | Admin dashboard with live DB metrics, permission-scoped | ✅ | |
 | Storefront foundation (tokens, live categories) | ✅ | |
-| Health endpoints, Dockerfile, Railway config (migrations pre-deploy, web only) | 🟡 | Web image built and run locally: migrate, health, home and auth OK, non-root. Not yet deployed to Railway (needs credentials). |
+| Health endpoints, Dockerfile, Railway config (migrations pre-deploy, web only) | ✅ | **Deployed 2026-11-10** via `.railway/railway.ts`; live health, owner login and protections verified (DEPLOYMENT.md) |
 
 ## Phase 2: RBAC management ✅ (2026-11-10)
 | Item | Status | Evidence |
@@ -75,8 +75,12 @@ Sales, revenue, product, category, customer, inventory, payment, refund, deliver
 ## Phase 10: Hardening and release ⬜
 Playwright E2E. Load test. CSP. Redis rate limiting. Backup-restore drill. Railway production deploy. Clean ZIP.
 
+## Phase 4: Customisation engine 🟡 (in progress)
+- ✅ Shared design model and pricing (`@ecom/validation/customization`), SVG renderer (`@ecom/ui/design`), services for options, designs, versions, submit, review, assignment and claim. 23 tests.
+- ⬜ Admin options builder + presets, admin Designs review screens, storefront `/customize/[productId]` editor, "my design" page, design image uploads.
+
 ## Known gaps and follow-ups (honest list)
-- Railway deploy has not been executed. It needs a Railway project and credentials.
+- Production: enable Postgres scheduled backups; configure Resend and ImageKit; add a custom domain (DEPLOYMENT.md).
 - Rate limiting uses per-instance memory. Move it to Redis before running more than one instance.
 - Postgres RLS: evaluated and deferred, with backend enforcement instead (ARCHITECTURE.md §7).
 - No real logo or product imagery yet. A monogram placeholder is in use.
