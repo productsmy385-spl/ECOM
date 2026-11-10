@@ -10,3 +10,6 @@
 _reference
 playwright-report
 test-results
+
+.railway/node_modules
+shots.tmp.mjs

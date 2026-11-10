@@ -17,6 +17,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#CF0F47" };
 
+// Every page includes the DB-driven header/footer (live categories, store
+// settings), so nothing may be prerendered at build time: builds run without
+// database access (Railway's private network isn't reachable during builds).
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${sora.variable} ${inter.variable}`}>

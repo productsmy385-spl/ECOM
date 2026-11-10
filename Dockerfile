@@ -1,7 +1,8 @@
 # Production image for one app of the monorepo. Build with:
 #   docker build --build-arg APP=web   -t ecom-web .
 #   docker build --build-arg APP=admin -t ecom-admin .
-# On Railway, set the service variable APP=web|admin (Railway passes declared ARGs).
+# On Railway, the service variable APP=web|admin is passed as a build arg.
+# Builds need NO database or runtime secrets (pages render at request time).
 
 FROM node:22-alpine AS base
 RUN corepack enable
@@ -10,20 +11,27 @@ WORKDIR /repo
 # ---- dependencies (cached unless manifests change) ----
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Every workspace manifest, so the frozen lockfile installs all importers.
 COPY apps/web/package.json apps/web/
 COPY apps/admin/package.json apps/admin/
-COPY packages/db/package.json packages/db/
 COPY packages/auth/package.json packages/auth/
+COPY packages/db/package.json packages/db/
 COPY packages/rbac/package.json packages/rbac/
+COPY packages/services/package.json packages/services/
 COPY packages/ui/package.json packages/ui/
+COPY packages/validation/package.json packages/validation/
 RUN pnpm install --frozen-lockfile
 
 # ---- build ----
 FROM deps AS build
 ARG APP=web
+# NEXT_PUBLIC_* values are inlined into the bundles at build time.
+ARG NEXT_PUBLIC_BRAND_NAME
+ARG NEXT_PUBLIC_SUPPORT_EMAIL
+ENV NEXT_PUBLIC_BRAND_NAME=${NEXT_PUBLIC_BRAND_NAME} \
+    NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL} \
+    NEXT_TELEMETRY_DISABLED=1
 COPY . .
-# Runtime secrets are NOT needed at build time (auth is created lazily).
-ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm --filter @ecom/db bundle && pnpm --filter "@ecom/${APP}" build
 
 # ---- runtime ----
