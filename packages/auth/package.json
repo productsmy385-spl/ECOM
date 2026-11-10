@@ -1,0 +1,22 @@
+{
+  "name": "@ecom/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ecom/db": "workspace:*",
+    "@ecom/rbac": "workspace:*",
+    "better-auth": "1.7.18",
+    "drizzle-orm": "^0.45.4"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

@@ -1,0 +1,219 @@
+/*
+ * Brand design tokens shared by the storefront (apps/web) and admin (apps/admin).
+ * Import AFTER `@import "tailwindcss";` in each app's globals.css.
+ *
+ * Palette (from the brand palette image):
+ *   Black #000000 · Crimson #CF0F47 · Hot Pink #FF0B55 · Light Pink #FFDEDE · White #FFFFFF
+ *
+ * Contrast rules (WCAG 2.1, measured):
+ *   white on crimson 5.51 (AA)  → primary buttons, primary badges
+ *   white on hot pink 3.87 (fails for body text) → hot pink is for accents, focus rings,
+ *     active indicators and large display text only; text ON hot pink is black (5.43)
+ *   crimson on light pink 4.39 (fails small text) → on blush surfaces use black text
+ *   dark mode links use #FF4D7E on near-black (6.19)
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  /* Raw brand colours */
+  --color-crimson: #cf0f47;
+  --color-crimson-700: #a80c3a;
+  --color-crimson-800: #850a2e;
+  --color-hotpink: #ff0b55;
+  --color-blush: #ffdede;
+  --color-blush-50: #fff5f5;
+  --color-ink: #000000;
+
+  /* Semantic colours (switch with theme) */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-link: var(--link);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-surface-tint: var(--surface-tint);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  /* `brand` kept for DropX components (credit link etc.) */
+  --color-brand: var(--primary);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
+
+  /* Typography: Sora is the primary (display/UI) face, Inter the body face */
+  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  /* Radius: chips md · buttons/inputs lg · cards xl · hero/media 2xl · pills full */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  /* Elevation: resting card · floating menu/hover · dialog */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-dropdown: 0 8px 24px -6px rgb(0 0 0 / 0.14), 0 2px 6px -2px rgb(0 0 0 / 0.06);
+  --shadow-modal: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --shadow-product: 0 12px 28px -12px rgb(207 15 71 / 0.25);
+
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-fade-in-up: fade-in-up 0.35s ease-out;
+  --animate-fade-in-down: fade-in-down 0.25s ease-out;
+  --animate-slide-in-left: slide-in-left 0.25s ease-out;
+  --animate-progress: progress-fill 1.2s ease-out;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-count-up: count-up 0.6s ease-out;
+}
+
+:root {
+  --primary: #cf0f47;
+  --primary-foreground: #ffffff;
+  --primary-hover: #a80c3a;
+  --highlight: #ff0b55;
+  --highlight-foreground: #000000;
+  --link: #cf0f47;
+
+  --background: #ffffff;
+  --foreground: #000000;
+  --muted: #f6f6f7;
+  --muted-foreground: #5c5c66;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --surface-tint: #fff5f5;
+  --border: #ececef;
+  --input: #dcdce1;
+  --ring: #ff0b55;
+  --accent: #ffdede;
+  --accent-foreground: #000000;
+  --destructive: #c81e1e;
+  --success: #0f8a4f;
+  --warning: #b45309;
+  --info: #1d4ed8;
+
+  --chart-1: #cf0f47;
+  --chart-2: #ff0b55;
+  --chart-3: #0f8a4f;
+  --chart-4: #b45309;
+  --chart-5: #1d4ed8;
+  --chart-6: #7c3aed;
+  --chart-7: #0e7490;
+  --chart-muted: #a1a1aa;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #27272a;
+  --sidebar-accent: #fff5f5;
+  --sidebar-border: #ececef;
+}
+
+.dark {
+  --primary: #cf0f47;
+  --primary-foreground: #ffffff;
+  --primary-hover: #e0185a;
+  --highlight: #ff4d7e;
+  --highlight-foreground: #000000;
+  --link: #ff4d7e;
+
+  --background: #0b0b0f;
+  --foreground: #f5f5f7;
+  --muted: #18181d;
+  --muted-foreground: #a1a1aa;
+  --card: #131318;
+  --card-foreground: #f5f5f7;
+  --surface-tint: #1c1116;
+  --border: #26262d;
+  --input: #2e2e36;
+  --ring: #ff4d7e;
+  --accent: #2a1219;
+  --accent-foreground: #ffdede;
+  --destructive: #f87171;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+
+  --chart-1: #ff4d7e;
+  --chart-2: #ff8fab;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #60a5fa;
+  --chart-6: #a78bfa;
+  --chart-7: #22d3ee;
+  --chart-muted: #52525b;
+
+  --sidebar: #131318;
+  --sidebar-foreground: #d4d4d8;
+  --sidebar-accent: #2a1219;
+  --sidebar-border: #26262d;
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-in-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in-down { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes slide-in-left { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes count-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes progress-fill { from { width: 0%; } }
+
+@layer base {
+  * { border-color: var(--border); }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6, button, .font-display {
+    font-family: var(--font-display);
+  }
+
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--primary); }
+
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .data-table thead th {
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .data-table tbody tr { transition: background-color 150ms ease; }
+  .data-table tbody tr:last-child { border-bottom-width: 0; }
+}

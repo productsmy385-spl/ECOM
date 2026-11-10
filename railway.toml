@@ -1,0 +1,18 @@
+# Railway config for the STOREFRONT service (APP=web).
+# This is the only service that runs migrations, so they execute exactly once
+# per deploy, before the new version receives traffic.
+# The admin service uses railway.admin.toml (set "Config file path" in its settings).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["apps/web/**", "packages/**", "Dockerfile", "pnpm-lock.yaml"]
+
+[deploy]
+# Runs in the newly built image before it is promoted. A failure aborts the
+# deploy and the previous version keeps serving. Additive migrations only.
+preDeployCommand = ["node db/migrate.mjs"]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

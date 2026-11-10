@@ -1,0 +1,21 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.turbo/
+
+# env: only .env.example is committed
+.env
+.env.*
+!.env.example
+
+# reference templates (extracted ZIPs) — never shipped
+_reference/
+
+.DS_Store
+Thumbs.db
+*.log

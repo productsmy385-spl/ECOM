@@ -1,0 +1,13 @@
+# Railway config for the ADMIN service (APP=admin).
+# Does NOT run migrations — the web service owns them (one runner per deploy).
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["apps/admin/**", "packages/**", "Dockerfile", "pnpm-lock.yaml"]
+
+[deploy]
+healthcheckPath = "/admin/api/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

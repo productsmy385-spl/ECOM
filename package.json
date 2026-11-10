@@ -1,0 +1,32 @@
+{
+  "name": "ecom",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter ./apps/* dev",
+    "dev:web": "pnpm --filter @ecom/web dev",
+    "dev:admin": "pnpm --filter @ecom/admin dev",
+    "build": "pnpm -r --filter ./apps/* build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:up": "docker compose -f docker/docker-compose.yml up -d",
+    "db:down": "docker compose -f docker/docker-compose.yml down",
+    "db:generate": "pnpm --filter @ecom/db generate",
+    "db:migrate": "pnpm --filter @ecom/db migrate",
+    "db:check": "pnpm --filter @ecom/db check",
+    "db:studio": "pnpm --filter @ecom/db studio",
+    "db:seed": "pnpm --filter @ecom/db seed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^22.10.0",
+    "typescript": "5.9.3",
+    "vitest": "^5.1.0"
+  }
+}
