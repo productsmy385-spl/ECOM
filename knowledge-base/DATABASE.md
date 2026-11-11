@@ -30,7 +30,7 @@ PostgreSQL 17 (local Docker) and Railway Postgres (production), accessed through
 `products.search_vector` is a generated `tsvector` (name A, short description B, description C) with a GIN index. Fuzzy name matching uses `pg_trgm` (`products_name_trgm_idx`). The extension is created in `0000_extensions.sql`.
 
 ## Table groups (52 tables)
-- **Identity**: `users`, `sessions`, `accounts`, `verifications`, `customer_profiles`, `staff_profiles`, `addresses`
+- **Identity**: `users` (with `clerk_user_id`, which links to Clerk), `customer_profiles`, `staff_profiles`, `addresses`. Sessions and credentials live in Clerk; Better Auth's `sessions`, `accounts` and `verifications` tables were dropped in `0003_clerk_identity` (2026-11-11).
 - **RBAC**: `roles`, `permissions`, `role_permissions`, `user_roles`
 - **Catalog**: `categories` (self-referencing tree), `brands`, `products`, `product_images`, `product_variants`, `product_attributes`, `customization_options`, `reviews`
 - **Inventory**: `inventory`, `inventory_movements` (append-only ledger), `suppliers`, `purchases`, `purchase_items`

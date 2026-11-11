@@ -2,9 +2,9 @@
 
 import { Heart, LayoutGrid, LogOut, MapPin, Palette, UserRound } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -17,14 +17,12 @@ const LINKS = [
 
 export function AccountNav() {
   const path = usePathname();
-  const router = useRouter();
+  const { signOut: clerkSignOut } = useClerk();
   const [busy, setBusy] = useState(false);
 
   async function signOut() {
     setBusy(true);
-    await authClient.signOut();
-    router.replace("/");
-    router.refresh();
+    await clerkSignOut({ redirectUrl: "/" });
   }
 
   return (

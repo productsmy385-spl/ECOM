@@ -22,6 +22,13 @@
       "when": 1794326098813,
       "tag": "0002_roles_name_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794366325007,
+      "tag": "0003_clerk_identity",
+      "breakpoints": true
     }
   ]
 }

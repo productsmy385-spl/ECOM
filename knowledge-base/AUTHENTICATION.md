@@ -1,59 +1,79 @@
 # Authentication
 
-**Better Auth 1.7.18** on our own Postgres tables (`users`, `sessions`, `accounts`, `verifications`). Configured once in `packages/auth/src/server.ts` and mounted by each app.
+**Clerk** handles sign-in, sign-up, passwords, Google sign-in, email verification, new-device checks, sessions and staff invitation emails. **Our database** stays the source of truth for who a person is in the store and what they may do: our `users` row, their roles and permissions (RBAC), status (active or suspended), addresses, designs and orders.
 
-| | Storefront (`createAuth("web")`) | Admin (`createAuth("admin")`) |
+This replaced Better Auth on 2026-11-11 (OPEN_QUESTIONS decision #3a). The `sessions`, `accounts` and `verifications` tables were dropped in migration `0003_clerk_identity`.
+
+One Clerk application serves both apps: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`. It is currently a **development instance** (`pk_test_`/`sk_test_`). That instance shows a "Development mode" badge and has usage limits. Create a production instance and a custom domain before launch (see "Before launch").
+
+## How a Clerk user becomes one of our users `[fact]`
+`users.clerk_user_id` (unique, nullable) links the two. The logic is in `resolveClerkUser()` in `packages/auth/src/identity.ts`:
+
+1. **Already linked:** one indexed query. No call to Clerk.
+2. **Not linked yet:** fetch the Clerk user. If their **primary email is verified**, link the existing `users` row with that email (case-insensitive). This is how the seeded owner, invited staff and pre-Clerk customers keep their roles and history.
+3. **No row with that email:** create a customer row and its `customer_profiles` row. **It is never staff.** Staff access only comes from roles granted in the admin.
+
+The function refuses (returns `null`) in three cases:
+- the email is unverified;
+- the account is closed (soft-deleted);
+- the identity doesn't match the session's Clerk user.
+
+`loadActor()` re-reads roles and permissions on **every request**, so suspensions and role changes apply immediately.
+
+## Per app
+| | Storefront (`apps/web`) | Admin (`apps/admin`, basePath `/admin`) |
 |---|---|---|
-| Endpoint | `/api/auth/*` | `/admin/api/auth/*` |
-| Cookie prefix | `ecom` | `ecom_admin` |
-| Sign-up | open (customers) | **disabled**; staff are created by an admin (Phase 2) |
-| Who may hold a session | any active user | **only users with ≥1 role**, enforced in the `session.create.before` hook |
-| Session lifetime | 30 days (refreshed every 4 h) | 12 hours |
-| Methods | email + password, email OTP | email + password (OTP available) |
+| Session | `clerkMiddleware()` in `proxy.ts` | same |
+| Server helper | `getCustomerState()` / `getCustomer()` / `requireCustomer()` in `lib/customer.ts` | `getAdminAuthState()` / `requireStaff(permission?)` in `lib/session.ts` |
+| Sign-in page | `/login`: Clerk `<SignIn routing="hash">`, honours `?next=` (via `safeNext`) | `/admin/login`: `<SignIn>`, with the sign-up link hidden |
+| Sign-up | `/register`: open to customers | `/admin/accept-invite`: needs an invitation ticket (`__clerk_ticket`), otherwise shows "open the link in your email" |
+| Signed in but not allowed | `AccountUnavailable` (suspended, closed or unverified) with sign-out | `/admin/no-access` with "sign out and use another account" |
+| Security settings | `/account/profile` embeds `<UserProfile>` (password, email, connected accounts, devices) | `/admin/account` embeds `<UserProfile>` |
 
-## Behaviour `[fact]`, covered by tests or the smoke script
-- Passwords: 8–128 characters, hashed by Better Auth (scrypt). Reset tokens expire after 30 min, and a reset revokes all of that user's sessions.
-- Email OTP: 6 digits, 5-minute expiry, 5 attempts. Customers can be allowed or blocked from using it via the `auth.customer_otp_enabled` setting. The storefront UI arrives in Phase 5.
-- Suspended or soft-deleted users cannot create a session in either app.
-- A wrong password and an unknown email return the same message (no account enumeration).
-- **Rate limits** (per IP): sign-in 5/min, sign-up 5/min, password reset 3 per 5 min, OTP send 3/min. Default is 100/min.
-  - Storage is **in-memory per instance**. That is fine for one instance per service. Before scaling horizontally, move it to Redis secondary storage (tracked in IMPLEMENTATION_PLAN).
-- **CSRF**: Better Auth rejects requests whose `Origin` is not in `trustedOrigins` (`WEB_URL`, `ADMIN_URL`). The smoke test confirms a cross-origin sign-in gets 403.
-- Cookies are `httpOnly` and `SameSite=Lax`, with `Secure` in production.
-- Emails go through Resend (REST, no SDK). Without `RESEND_API_KEY`, emails are logged in dev and refused with an error log in production.
+Admin guards work like this:
+- Signed out goes to `/admin/login`.
+- Signed in, but not active staff, goes to `/admin/no-access`.
+- Staff without the needed permission go to `/admin/forbidden`.
+- API routes return 401 or 403 (`apiRoute` in `lib/api.ts`).
 
-## Server helpers
-- `getAuth()` (in each app's `lib/auth.ts`): lazily created instance, so builds need no secrets.
-- `getStaffSession()` / `requireStaff(permission?)` in `apps/admin/lib/session.ts`.
-- `loadActor(userId)` in `@ecom/auth`: roles and permissions from the DB, or `null` for inactive users.
+A customer's Clerk session never opens the admin (smoke-tested).
+
+## Staff invitations `[fact]`
+1. An admin creates the staff member (`POST /admin/api/staff`). This creates our row and roles, with no credentials.
+2. The route calls `sendClerkInvitation()` with a redirect to `<ADMIN_URL>/admin/accept-invite`, valid for **7 days**, with `ignoreExisting: true`. Clerk sends the email, so no Resend key is needed.
+3. The person opens the link and creates their sign-in (password or Google). The email is fixed by the ticket and already verified.
+4. Their first request links the Clerk user to the staff row by email. The staff page then shows **Joined** instead of **Invitation pending**.
+5. "Resend invitation" appears only while the invitation is pending. If the email already has a Clerk account, the API answers `alreadyHasAccount`; they simply sign in.
+
+Forgotten passwords are reset from Clerk's sign-in screen.
+
+**Deactivating** a staff member sets `status = suspended`, so every request is refused from then on. The route also revokes their active Clerk sessions (best effort, `revokeClerkSessions`).
 
 ## Bootstrapping the first Super Admin
-Set `SEED_SUPERADMIN_EMAIL` / `SEED_SUPERADMIN_PASSWORD` / `SEED_SUPERADMIN_NAME`, then run `pnpm db:seed` (or `node db/seed.mjs` in the production image). The seed creates the user only if the email doesn't exist yet. In production the password must be at least 12 characters. Change it after first login; a password-change UI arrives in Phase 2.
+1. Set `SEED_SUPERADMIN_EMAIL` (and optionally `SEED_SUPERADMIN_NAME`), then run `pnpm db:seed` (in production: `node db/seed.mjs`). This creates the staff row and the Super Admin role only. There is no password.
+2. The owner opens `/admin/login` and signs in through Clerk with that email: Google, or "Sign up" via an invitation.
 
-## Staff invitations (Phase 2) `[fact]`
-1. An admin creates the staff member (`POST /admin/api/staff`). The account is created **without a password**.
-2. The handler calls Better Auth `requestPasswordReset`. Because the user has no credential account yet, the email is worded as an invitation ("Set your password").
-3. The link (single use, **24 h** in admin, 30 min on the storefront) opens `/admin/reset-password?token=…`. Setting the password creates the credential account (Better Auth `utils/password.mjs:35`), marks the email verified, and revokes any sessions.
-4. "Resend invitation" or "Send password reset" on the staff page issues a fresh link.
+The production owner row (`saycheeselive@gmail.com`) already exists from the Better Auth era. It links on the owner's first Clerk sign-in.
 
-Staff passwords need at least **10** characters, enforced by Better Auth for the admin app. The forms also require letters plus digits. Customers need at least 8.
+## Webhook (optional)
+`POST /api/webhooks/clerk` on the storefront is Svix-verified with `CLERK_WEBHOOK_SIGNING_SECRET`.
+- `user.updated` syncs name, verified email and photo.
+- `user.deleted` unlinks `clerk_user_id`. The row keeps its orders and history.
 
-## Customer accounts (Phase 5) `[fact]`
-| Page | What it does |
-|---|---|
-| `/register` | Name, email, password (≥ 8 characters, letters + numbers), optional marketing opt-in. Signs the customer in immediately. |
-| `/login` | Password, or **email code** (6 digits, 5 min). The code tab only appears when email can actually be delivered (`RESEND_API_KEY` set, or development, where codes are printed to the server log). |
-| `/forgot-password`, `/reset-password` | Reset link (30 min, single use). Without an email provider the page shows support contact details instead of pretending to send. |
-| `/account/*` | Overview, profile (name, mobile, DOB, marketing), password change (signs out other devices), devices list with "sign out of other devices", addresses, wishlist |
+It never changes roles or status. Without the secret it returns 503 and sign-in still works, because linking happens on first request.
 
-- **Post-login destinations** come only from `?next=`, and `safeNext()` accepts same-site relative paths only (no open redirect).
-- **Guest designs are claimed** automatically: when a signed-in request still carries the guest design cookie, its designs move to the account and the cookie is cleared (`lib/design-owner.ts`).
-- Customer-facing APIs (`/api/account/*`) take the customer id **only from the session**: 401 when signed out, 404 for other people's records, 403 for cross-origin writes.
-- The wishlist provider is keyed by user id, because sign-in and sign-out happen without a full reload (see KNOWN-ISSUES).
+## Other behaviour
+- **CSRF:** our API wrappers reject cross-origin writes (Origin check). Clerk's session cookie is SameSite=Lax.
+- **Guest designs** are claimed into the account on the first signed-in request (`lib/design-owner.ts`).
+- **Customer APIs** take the user id only from the session: 401 when signed out, 404 for others' records.
+- **Rate limiting and bot protection** for sign-in and sign-up are Clerk's (configured in the Clerk dashboard).
+- Tests never call Clerk. Identity resolution is tested with injected identities (`packages/auth/src/auth.integration.test.ts`). Browser flows use `@clerk/testing` testing tokens and `+clerk_test` email addresses; verification code `424242`.
+
+## Before launch
+- Create a Clerk **production instance**. Point `clerk.<domain>` and `accounts.<domain>` DNS at it, and swap in the `pk_live_`/`sk_live_` keys in Railway. Production instances need a real domain; Railway's `*.up.railway.app` isn't one.
+- In the Clerk dashboard, consider **restricting sign-ups** or enabling the allowlist if the storefront should be invite-only. It isn't now.
+- Add the webhook endpoint and its secret.
 
 ## Not yet built
-- Guest checkout: Phase 6
-- Phone/SMS OTP: needs an SMS provider (open question)
-- Email verification is not enforced at sign-up `[proposed]`: enforce it once Resend is live.
-- A staff "active sessions" list: Phase 10
-- Phone or SMS OTP: needs an SMS provider. Not yet decided; see OPEN_QUESTIONS.
+- Guest checkout (Phase 6)
+- Phone/SMS sign-in: available in Clerk, but not enabled. See OPEN_QUESTIONS.

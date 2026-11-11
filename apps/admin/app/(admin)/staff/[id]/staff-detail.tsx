@@ -69,8 +69,11 @@ export function StaffDetailView({ id, me, canManage }: Props) {
 
   const resendInvite = async () => {
     try {
-      const res = await api<{ sent: boolean; error?: string }>(`/staff/${id}/invite`, { method: "POST" });
+      const res = await api<{ sent: boolean; alreadyHasAccount?: boolean; error?: string }>(`/staff/${id}/invite`, {
+        method: "POST",
+      });
       if (res.sent) toast.success(`Invitation sent to ${s.email}`);
+      else if (res.alreadyHasAccount) toast.info(`${s.email} already has a sign-in. They can sign in to the admin directly.`);
       else toast.error(res.error ?? "Could not send the invitation.");
     } catch (err) {
       toast.error((err as Error).message);
@@ -85,7 +88,7 @@ export function StaffDetailView({ id, me, canManage }: Props) {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {s.status === "active" ? <Badge variant="success">Active</Badge> : <Badge variant="danger">Deactivated</Badge>}
-            {!s.hasPassword && <Badge variant="warning">Invitation pending</Badge>}
+            {!s.hasJoined && <Badge variant="warning">Invitation pending</Badge>}
           </div>
         }
       />
@@ -134,22 +137,31 @@ export function StaffDetailView({ id, me, canManage }: Props) {
             <dd>{formatDateTime(s.createdAt)}</dd>
             <dt className="text-muted-foreground">Last sign-in</dt>
             <dd>{formatDateTime(s.lastLoginAt)}</dd>
-            <dt className="text-muted-foreground">Password</dt>
-            <dd>{s.hasPassword ? "Set" : "Not set yet (invitation pending)"}</dd>
+            <dt className="text-muted-foreground">Sign-in</dt>
+            <dd>{s.hasJoined ? "Joined" : "Invitation pending"}</dd>
           </dl>
-          {editable && !isSelf && s.status === "active" && (
-            <ConfirmDialog
-              title={s.hasPassword ? "Send a password reset link?" : "Resend the invitation?"}
-              description={`A single-use link valid for 24 hours will be emailed to ${s.email}.`}
-              confirmLabel="Send link"
-              onConfirm={resendInvite}
-              trigger={
-                <Button variant="outline" size="sm" className="mt-4">
-                  {s.hasPassword ? <MailCheck className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-                  {s.hasPassword ? "Send password reset" : "Resend invitation"}
-                </Button>
-              }
-            />
+          {s.hasJoined ? (
+            <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
+              <MailCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              Forgotten passwords are reset from the sign-in screen (&ldquo;Forgot password?&rdquo;).
+            </p>
+          ) : (
+            editable &&
+            !isSelf &&
+            s.status === "active" && (
+              <ConfirmDialog
+                title="Resend the invitation?"
+                description={`An invitation valid for 7 days will be emailed to ${s.email}.`}
+                confirmLabel="Send invitation"
+                onConfirm={resendInvite}
+                trigger={
+                  <Button variant="outline" size="sm" className="mt-4">
+                    <Send className="h-4 w-4" />
+                    Resend invitation
+                  </Button>
+                }
+              />
+            )
           )}
         </Card>
 
@@ -159,7 +171,7 @@ export function StaffDetailView({ id, me, canManage }: Props) {
             <p className="mt-1 text-sm text-muted-foreground">
               {s.status === "active"
                 ? "They're signed out of every device immediately and can't sign in. Their history is kept."
-                : "They'll be able to sign in again with their existing password."}
+                : "They'll be able to sign in again with their existing sign-in."}
             </p>
             <ConfirmDialog
               title={s.status === "active" ? `Deactivate ${s.name}?` : `Reactivate ${s.name}?`}

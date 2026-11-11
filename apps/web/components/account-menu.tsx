@@ -2,13 +2,13 @@
 
 import { ChevronDown, Heart, LayoutGrid, LogOut, MapPin, Palette, UserRound } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useClerk } from "@clerk/nextjs";
 
 export function AccountMenu({ name }: { name: string | null }) {
   const path = usePathname();
-  const router = useRouter();
+  const { signOut } = useClerk();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -55,8 +55,7 @@ export function AccountMenu({ name }: { name: string | null }) {
             className={`${item} w-full text-destructive`}
             onClick={async () => {
               setOpen(false);
-              await authClient.signOut();
-              router.refresh();
+              await signOut({ redirectUrl: path.startsWith("/account") ? "/" : path });
             }}
           >
             <LogOut className="h-4 w-4" /> Sign out

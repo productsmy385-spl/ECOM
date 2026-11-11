@@ -1,17 +1,16 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
 import { cn, getInitials } from "@/lib/utils";
+import { useClerk } from "@clerk/nextjs";
 import { ChevronDown, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useShell } from "./shell-context";
 
 export function UserMenu() {
   const { user } = useShell();
-  const router = useRouter();
+  const { signOut: clerkSignOut } = useClerk();
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -39,14 +38,12 @@ export function UserMenu() {
 
   async function signOut() {
     setSigningOut(true);
-    const { error } = await authClient.signOut();
-    if (error) {
+    try {
+      await clerkSignOut({ redirectUrl: "/admin/login" });
+    } catch {
       setSigningOut(false);
-      toast.error(error.message ?? "Could not sign out. Please try again.");
-      return;
+      toast.error("Could not sign out. Please try again.");
     }
-    router.replace("/login");
-    router.refresh();
   }
 
   const itemClass =

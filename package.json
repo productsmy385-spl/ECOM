@@ -24,6 +24,7 @@
     "db:seed": "pnpm --filter @ecom/db seed"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.2.55",
     "@playwright/test": "^1.65.0",
     "@types/node": "^22.10.0",
     "railway": "^3.16.0",

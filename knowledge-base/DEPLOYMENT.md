@@ -13,7 +13,7 @@ Railway project **zippy-joy**, environment **production**, region Southeast Asia
 This file is the source of truth for both app services: build (root `Dockerfile`), health checks, pre-deploy migration, replicas and variables. It **replaced** `railway.toml` / `railway.admin.toml` (Railway's config-as-code is deprecated after 2026-12-01).
 - It's a **named partial** (`export const partial = "ECOM"`). It manages only `ECOM` and `admin`. **Postgres isn't declared**: it's referenced as `${{Postgres.DATABASE_URL}}`, so an apply can never modify or delete the database.
 - Variables are **managed**: the file owns them. Secrets use `preserve()` and are set out-of-band, never committed.
-- The admin service references the storefront's secrets (`${{ECOM.BETTER_AUTH_SECRET}}` etc.), so both apps always share one value.
+- The admin service references the storefront's secrets (`${{ECOM.CLERK_SECRET_KEY}}` etc.), so both apps always share one value. `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is also a Docker build arg, because Clerk reads it at build time.
 
 ```powershell
 # Windows: the SDK's CLI-version check can't execute the npm shim. Point it at the binary first:
@@ -32,7 +32,7 @@ railway config apply    # apply the reviewed plan
 ## Secrets and one-off tasks
 | Task | Command |
 |---|---|
-| Set or rotate a secret | `railway variable set BETTER_AUTH_SECRET --stdin --service ECOM` (rotating signs everyone out) |
+| Set or rotate a secret | `railway variable set CLERK_SECRET_KEY --stdin --service ECOM` |
 | Add Resend/ImageKit keys | Set them on `ECOM`; `admin` picks them up through references |
 | Bootstrap or reset the first Super Admin | Run the seed bundle locally against Postgres's **public** URL (below). The seed is idempotent and creates the owner only if the email doesn't exist. |
 

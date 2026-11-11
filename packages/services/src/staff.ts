@@ -1,9 +1,7 @@
 import {
-  accounts,
   type DbOrTx,
   db,
   roles,
-  sessions,
   staffProfiles,
   userRoles,
   users,
@@ -48,8 +46,10 @@ export interface StaffListItem {
 export interface StaffDetail extends StaffListItem {
   phone: string | null;
   employeeCode: string | null;
-  /** False until the invited person sets a password. */
-  hasPassword: boolean;
+  /** False until the invited person accepts the invitation and signs in. */
+  hasJoined: boolean;
+  /** Clerk user id once joined; used to end their sessions on deactivation. */
+  clerkUserId: string | null;
   permissions: Permission[];
 }
 
@@ -140,6 +140,7 @@ async function loadStaff(conn: DbOrTx, id: string): Promise<StaffDetail> {
       createdAt: users.createdAt,
       designation: staffProfiles.designation,
       employeeCode: staffProfiles.employeeCode,
+      clerkUserId: users.clerkUserId,
     })
     .from(users)
     .leftJoin(staffProfiles, eq(staffProfiles.userId, users.id))
@@ -149,18 +150,13 @@ async function loadStaff(conn: DbOrTx, id: string): Promise<StaffDetail> {
 
   const roleRefs = (await rolesForUsers(conn, [id])).get(id) ?? [];
   const roleDetails = await loadRoles(conn, roleRefs.map((r) => r.id));
-  const [cred] = await conn
-    .select({ id: accounts.id })
-    .from(accounts)
-    .where(and(eq(accounts.userId, id), eq(accounts.providerId, "credential")))
-    .limit(1);
 
   return {
     ...row,
     designation: row.designation ?? null,
     employeeCode: row.employeeCode ?? null,
     roles: roleRefs,
-    hasPassword: !!cred,
+    hasJoined: !!row.clerkUserId,
     permissions: [...new Set(roleDetails.flatMap((r) => r.permissions))],
   };
 }
@@ -209,8 +205,9 @@ function auditView(s: StaffDetail) {
 }
 
 /**
- * Creates a staff account WITHOUT a password. The caller then sends an
- * invitation (password-set link); the person chooses their own password.
+ * Creates the staff record (no credentials). The caller then sends a Clerk
+ * invitation; when the person accepts and signs in, their Clerk user is linked
+ * to this row by verified email.
  */
 export async function createStaff(ctx: ServiceContext, raw: unknown): Promise<StaffDetail> {
   requirePermission(ctx.actor, "staff.manage");
@@ -319,7 +316,10 @@ export async function updateStaff(ctx: ServiceContext, id: string, raw: unknown)
   });
 }
 
-/** Activate or deactivate. Deactivation revokes every session immediately. */
+/**
+ * Activate or deactivate. A suspended user is refused on their very next request
+ * (status is re-read every time); the route also ends their Clerk sessions.
+ */
 export async function setStaffStatus(ctx: ServiceContext, id: string, raw: unknown): Promise<StaffDetail> {
   requirePermission(ctx.actor, "staff.manage");
   const { active } = staffStatusSchema.parse(raw);
@@ -336,16 +336,12 @@ export async function setStaffStatus(ctx: ServiceContext, id: string, raw: unkno
 
     await tx.update(users).set({ status: nextStatus }).where(eq(users.id, id));
     await tx.update(staffProfiles).set({ isActive: active }).where(eq(staffProfiles.userId, id));
-    let revoked = 0;
-    if (!active) {
-      revoked = (await tx.delete(sessions).where(eq(sessions.userId, id)).returning({ id: sessions.id })).length;
-    }
     await writeAudit(tx, ctx, {
       action: active ? "staff.activate" : "staff.deactivate",
       entityType: "user",
       entityId: id,
       before: { status: before.status },
-      after: { status: nextStatus, sessionsRevoked: revoked },
+      after: { status: nextStatus },
     });
     return { ...before, status: nextStatus };
   });
@@ -353,7 +349,7 @@ export async function setStaffStatus(ctx: ServiceContext, id: string, raw: unkno
 
 /**
  * Authorises (and audits) re-sending an invitation. The route handler sends the
- * email through Better Auth's password-reset flow after this returns.
+ * Clerk invitation after this returns.
  */
 export async function prepareStaffInvite(ctx: ServiceContext, id: string): Promise<{ email: string }> {
   requirePermission(ctx.actor, "staff.manage");

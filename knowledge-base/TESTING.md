@@ -12,6 +12,18 @@
 - `tests/global-setup.ts` migrates and seeds it with a known Super Admin (`root@test.local`). It refuses to run if `TEST_DATABASE_URL` equals `DATABASE_URL`.
 - Files run serially because they share one database. Each file cleans up the rows it creates, using a per-run email suffix.
 
+## Testing with Clerk (from 2026-11-11)
+- **Integration tests never call Clerk.** `resolveClerkUser(id, fetchIdentity)` takes the identity as a function, so tests inject one (`packages/auth/src/auth.integration.test.ts`).
+- **Smoke test** (`scripts/smoke.mjs`) mints short-lived session tokens with the Clerk Backend API (`sessions.createSession` and `getToken`) and sends them as `Authorization: Bearer`. It creates and deletes one `smoke-…+clerk_test@example.com` Clerk user. Staff checks need `SMOKE_STAFF_EMAIL`: a Super Admin who already has a Clerk account. They are skipped otherwise. This requires a Clerk **development** instance.
+- **Browser flows** use `@clerk/testing/playwright` (`clerkSetup` plus `setupClerkTestingToken`) to bypass bot protection. Use `…+clerk_test@example.com` addresses; their verification code is always **424242**. Clerk asks for that code on a new device (`#/client-trust`).
+- On localhost both apps share Clerk's cookies (same host, different ports), so one browser context is signed in to both. On Railway they are separate domains.
+
+## Clerk migration results (2026-11-11) `[fact]`
+- `pnpm test`: **94/94 passed**.
+- `node scripts/smoke.mjs` (dev servers, temporary Clerk staff user): **34/34 passed**. Covers anonymous redirects and 401s, unsigned webhook refused, customer provisioned on first request, cross-origin 403, customer to `/admin/no-access` and 401, staff dashboard, IDOR 404, Clerk invitation sent, and the catalog lifecycle.
+- Browser end-to-end: **23/24**. Seeded Super Admin linked on first Clerk sign-in; staff created and invited; invitation accepted via `/admin/accept-invite`; invitee lands on the dashboard with the Staff role, and an out-of-permission page goes to `/forbidden`; deactivation leads to `/no-access` and API 401; customer `/account` → `/login?next=` → back; Clerk `<UserProfile>` renders; customer in admin gets `/no-access`; sign-out leads to 401; no mobile overflow; no page errors. The one miss was a header assertion run before client navigation finished; the same control was used successfully later in the run.
+- Lint, typecheck and `next build` (both apps): clean.
+
 ## Phase 1 results (2026-11-10) `[fact]`
 - `pnpm test`: **25/25 passed** (16 RBAC unit tests, 9 auth/isolation integration tests).
 - `node scripts/smoke.mjs` against production builds: **14/14 passed**. Health, DB-backed storefront, admin redirect, staff login → dashboard, licence credit, customer sign-up, customer refused an admin session, customer cookie can't open admin, cross-origin rejected, sign-out invalidates, rate limit.

@@ -11,9 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/backend": "^3.27.0",
     "@ecom/db": "workspace:*",
     "@ecom/rbac": "workspace:*",
-    "better-auth": "1.7.18",
     "drizzle-orm": "^0.45.4"
   },
   "peerDependencies": {

@@ -1,4 +1,6 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import { brand } from "@ecom/ui/brand";
+import { clerkAppearance } from "@ecom/ui/clerk-appearance";
 import { designFontVariables } from "@ecom/ui/design-fonts";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
@@ -30,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const customer = await getCustomer();
   const wishlistIds = customer ? await wishlistProductIds({ userId: customer.userId }) : [];
   return (
+    <ClerkProvider signInUrl="/login" signUpUrl="/register" afterSignOutUrl="/" appearance={clerkAppearance}>
     <html lang="en-IN" className={`${sora.variable} ${inter.variable} ${designFontVariables}`}>
       <body className="flex min-h-screen flex-col antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
@@ -46,5 +49,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </WishlistProvider>
       </body>
     </html>
+    </ClerkProvider>
   );
 }

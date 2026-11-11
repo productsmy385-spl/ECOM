@@ -3,7 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { requireStaff } from "@/lib/session";
 import type { Metadata } from "next";
-import { ChangePasswordForm } from "./change-password-form";
+import { UserProfile } from "@clerk/nextjs";
+import { clerkAppearance } from "@ecom/ui/clerk-appearance";
 
 export const metadata: Metadata = { title: "My account" };
 
@@ -12,7 +13,7 @@ export default async function AccountPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="My account" description="Your profile and sign-in security." />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6">
         <Card className="p-5">
           <h2 className="text-sm font-semibold">Profile</h2>
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
@@ -35,11 +36,19 @@ export default async function AccountPage() {
             To change your name or roles, ask someone with staff management access.
           </p>
         </Card>
-        <Card className="p-5">
-          <h2 className="text-sm font-semibold">Change password</h2>
-          <p className="mt-1 text-sm text-muted-foreground">You&apos;ll stay signed in here; other devices are signed out.</p>
-          <ChangePasswordForm />
-        </Card>
+        <section aria-labelledby="security-heading" className="space-y-3">
+          <div>
+            <h2 id="security-heading" className="text-sm font-semibold">
+              Sign-in &amp; security
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Password, two-step verification and signed-in devices. Managed securely by Clerk.
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <UserProfile routing="hash" appearance={clerkAppearance} />
+          </div>
+        </section>
       </div>
     </div>
   );

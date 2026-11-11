@@ -8,7 +8,8 @@
     "./brand": "./src/brand.ts",
     "./format": "./src/format.ts",
     "./design": "./src/design/renderer.tsx",
-    "./design-fonts": "./src/design/fonts.ts"
+    "./design-fonts": "./src/design/fonts.ts",
+    "./clerk-appearance": "./src/clerk-appearance.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

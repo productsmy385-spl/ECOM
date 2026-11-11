@@ -6,6 +6,7 @@ if (!process.env.TEST_DATABASE_URL) throw new Error("TEST_DATABASE_URL must be s
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 process.env.WEB_URL ??= "http://localhost:3000";
 process.env.ADMIN_URL ??= "http://localhost:3001";
-process.env.BETTER_AUTH_SECRET ??= "test-secret-test-secret-test-secret-1234";
+// Tests never call Clerk: identity resolution is tested with injected identities.
+process.env.CLERK_SECRET_KEY = "";
 // Tests must never send real email.
 process.env.RESEND_API_KEY = "";

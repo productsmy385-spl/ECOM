@@ -10,7 +10,7 @@ Status key: ✅ done and verified · 🟡 partly done · ⬜ not started. Progre
 | Design system: brand tokens, Sora + Inter, contrast-checked | ✅ | `packages/ui/src/tokens.css`, UI_UX_GUIDELINES.md |
 | Docker Postgres 17 + Redis 7 (+ `ecom_test` DB) | ✅ | `docker/docker-compose.yml` |
 | Drizzle schema (52 tables), 2 migrations, idempotent seed | ✅ | migrate and seed (run twice) OK, oversell CHECK verified |
-| Better Auth (web + admin), email OTP, rate limits, staff-only admin | ✅ | 9 integration tests + smoke |
+| Better Auth (web + admin), email OTP, rate limits, staff-only admin | ✅ → replaced | Replaced by Clerk on 2026-11-11 (see "Clerk migration" below) |
 | RBAC catalogue, 9 roles, guards, escalation rules | ✅ | 16 unit tests |
 | Admin shell from DropX (pruned, rebranded, permission-filtered nav, real user menu and sign-out) | ✅ | screenshots at 1440 and 390 |
 | Admin dashboard with live DB metrics, permission-scoped | ✅ | |
@@ -22,7 +22,7 @@ Status key: ✅ done and verified · 🟡 partly done · ⬜ not started. Progre
 |---|---|---|
 | `packages/services` (staff, roles, audit) + `packages/validation` (Zod) | ✅ | Permission checks live inside the services |
 | Admin API wrapper (`apiRoute`): session, same-origin check, error mapping | ✅ | API_DOCUMENTATION.md |
-| Staff: list, filter, create, edit, deactivate/reactivate, invite/resend | ✅ | Invitation = Better Auth single-use set-password link (24 h) |
+| Staff: list, filter, create, edit, deactivate/reactivate, invite/resend | ✅ | Invitation is now a Clerk invitation (7 days); see AUTHENTICATION.md |
 | Roles: list, create, rename, delete (blocked for system or in-use roles) | ✅ | Unique names enforced in the DB (`roles_name_lower_uq`, migration 0002) |
 | Permission matrix: grouped by module, escalation-safe, Super Admin locked, batched saves | ✅ | |
 | Audit log: written in the same transaction as each change; viewer with before/after | ✅ | |
@@ -31,7 +31,7 @@ Status key: ✅ done and verified · 🟡 partly done · ⬜ not started. Progre
 | HTTP smoke extended (401, cross-origin 403, 422, 404 IDOR, create + audit) | ✅ | 22/22 |
 
 Not in Phase 2:
-- Audit entries for *self-service* password changes. Better Auth handles those directly; a hook will add them in Phase 10.
+- Audit entries for *self-service* sign-in changes (password, email) happen in Clerk. A Clerk webhook can add them in Phase 10.
 - Staff deletion. Deactivation is used instead, which keeps the audit history intact.
 
 ## Phase 3: Public website + catalog management ✅ (2026-11-10)
@@ -64,6 +64,14 @@ Option configuration in admin. Customer configurator and canvas editor (layers, 
 - ✅ Guest designs claimed into the account on sign-in.
 - ✅ 6 integration tests (isolation, default rules, wishlist, profile) + browser end-to-end (guest → register → claim → wishlist → addresses → password → re-sign-in; cross-customer 404, anonymous 401, cross-origin 403).
 - 🟡 Email-code sign-in and reset emails are untested end to end until Resend is configured (the UI hides or explains them meanwhile).
+
+## Clerk migration ✅ (2026-11-11)
+Authentication moved from Better Auth to Clerk at the user's request (OPEN_QUESTIONS #3a). See [AUTHENTICATION.md](AUTHENTICATION.md).
+- ✅ `users.clerk_user_id`; first sign-in links by **verified** email or creates a customer (never staff). Better Auth tables dropped (migration 0003).
+- ✅ Admin: Clerk `<SignIn>` and `/accept-invite` (`<SignUp>` with an invitation ticket), `/no-access`, `<UserProfile>` on My account. Staff invitations are sent by Clerk; deactivation also revokes Clerk sessions.
+- ✅ Storefront: `<SignIn>`/`<SignUp>` with `?next=`, `<UserProfile>` on Profile & security, optional `/api/webhooks/clerk`.
+- ✅ 94 tests (auth identity tests rewritten). Smoke test (34 checks) uses Clerk Bearer session tokens. Browser end-to-end (23/24, the one miss a test-timing artefact): staff sign-in, invite, accept, forbidden, deactivate, no-access, customer sign-in and sign-out, mobile.
+- Phase 5 notes below that mention passwords, email codes or "devices" describe the Better Auth version. Those features are now Clerk's.
 
 ## Phase 6: Cart and checkout ⬜
 Cart (guest and user, merge on login). Coupons. GST and shipping. Razorpay order, signature check, webhook and idempotency. COD flag. Transactional order creation with stock reservation. Redis and BullMQ.

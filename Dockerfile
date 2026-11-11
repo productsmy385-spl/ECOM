@@ -28,8 +28,11 @@ ARG APP=web
 # NEXT_PUBLIC_* values are inlined into the bundles at build time.
 ARG NEXT_PUBLIC_BRAND_NAME
 ARG NEXT_PUBLIC_SUPPORT_EMAIL
+# Clerk's publishable key is public (it ships to browsers) but Clerk reads it at build time.
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_BRAND_NAME=${NEXT_PUBLIC_BRAND_NAME} \
     NEXT_PUBLIC_SUPPORT_EMAIL=${NEXT_PUBLIC_SUPPORT_EMAIL} \
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} \
     NEXT_TELEMETRY_DISABLED=1
 COPY . .
 RUN pnpm --filter @ecom/db bundle && pnpm --filter "@ecom/${APP}" build

@@ -3,17 +3,17 @@
 ## In place (Phase 1) `[fact]`
 | Area | Control |
 |---|---|
-| AuthN | Better Auth sessions with httpOnly cookies, separate cookies and endpoints for customers and staff. Admin sessions are refused to users without roles. |
+| AuthN | Clerk sessions (short-lived JWT plus httpOnly client cookie), verified by `clerkMiddleware`. Clerk users are linked to our `users` rows only by **verified** email. Admin access needs an active user with at least one role, re-checked on every request. |
 | AuthZ | Database-driven RBAC re-read per request. Guards in `@ecom/rbac`. A page guard on every admin page. Escalation rules tested. |
 | Data isolation | Identity always comes from the verified session. Assignment-scoped permissions (`*_assigned`). Respond 404 on denied record access. |
-| Brute force | Per-route rate limits on sign-in, sign-up, reset and OTP |
+| Brute force | Clerk's sign-in protection: rate limits, bot protection and new-device email verification ("client trust"). |
 | CSRF | Origin allow-list (`trustedOrigins`), SameSite cookies |
 | Injection | Drizzle parameterised queries only. No string-built SQL with user input. |
 | XSS | React escaping. Email HTML escapes every interpolated value (`simpleEmail`). |
 | Headers | `X-Frame-Options` (DENY admin / SAMEORIGIN web), `nosniff`, `Referrer-Policy`, `Permissions-Policy`. Admin sends `X-Robots-Tag: noindex`. `X-Powered-By` is off. |
 | Integrity | DB CHECKs (no oversell, refund ≤ payment), unique idempotency keys, append-only ledgers |
 | Secrets | Only `.env.example` is committed. `.env*` is git- and docker-ignored. Secrets are never logged. |
-| Supply chain | pnpm `minimumReleaseAge` is respected (better-auth was pinned to an older, mature release instead of bypassing it). Install scripts are allow-listed (`allowBuilds`). |
+| Supply chain | pnpm `minimumReleaseAge` is respected (e.g. a library was pinned to an older, mature release instead of bypassing it). Install scripts are allow-listed (`allowBuilds`). |
 | Container | Non-root user, standalone output, no dev dependencies in the runtime image |
 
 ## Added in Phase 3 `[fact]`

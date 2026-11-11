@@ -26,7 +26,7 @@ Lists return `{ items, page, pageSize, total, totalPages }`. Query parameters: `
 | Method & path | Permission | Notes |
 |---|---|---|
 | `GET /staff?q=&role=&status=&page=` | `staff.view` | Lists staff only. Customers are never included. |
-| `POST /staff` | `staff.manage` | Body `{ name, email, phone?, designation?, employeeCode?, roleIds[] }`. Returns 201 `{ staff, invite: { sent, error? } }`. No password is set; the person receives a set-password link. |
+| `POST /staff` | `staff.manage` | Body `{ name, email, phone?, designation?, employeeCode?, roleIds[] }`. Returns 201 `{ staff, invite: { sent, alreadyHasAccount?, error? } }`. No credentials are created; Clerk emails an invitation to `/admin/accept-invite`. |
 | `GET /staff/:id` | `staff.view` | Returns 404 for customer ids |
 | `PATCH /staff/:id` | `staff.manage` | Body as POST, without `email`. Role changes are escalation-checked. Your own roles are locked. |
 | `POST /staff/:id/status` | `staff.manage` | Body `{ active }`. Deactivating revokes all sessions. You can't change your own status or that of someone more powerful. |
@@ -75,8 +75,8 @@ Money is in **paise** everywhere in the API. Prices are GST-inclusive.
 | `POST /designs/:id/notes` | `designs.update` or `designs.approve` | Internal note |
 | `GET /designers` | `designs.assign` | Eligible staff |
 
-### Auth (Better Auth)
-`/admin/api/auth/*`: sign-in, sign-out, `request-password-reset`, `reset-password`, `change-password`, get-session. See AUTHENTICATION.md.
+### Auth (Clerk)
+There are no auth endpoints of our own. Sign-in, sign-up, password reset and sessions are Clerk's (hosted Frontend API; components on `/login`, `/register`, `/admin/login`, `/admin/accept-invite`). Our APIs accept the Clerk session cookie, or `Authorization: Bearer <Clerk session token>`, which is what the smoke test uses. `POST /api/webhooks/clerk` (storefront) receives Svix-signed `user.updated` and `user.deleted` events. See AUTHENTICATION.md.
 
 ### Health
 `GET /admin/api/health`. Returns 200, or 503 when the database is unreachable.

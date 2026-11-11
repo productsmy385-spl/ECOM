@@ -13,14 +13,17 @@ import { deletedAt, id, timestamps, ts } from "./_helpers";
 import { userStatus } from "./enums";
 
 /**
- * Identity table shared by customers and staff (Better Auth "user" model).
- * Whether a user is staff is decided by having rows in user_roles, never by a
- * client-supplied flag. `isStaff` is a denormalised hint for listing only.
+ * Identity table shared by customers and staff. Sign-in itself is handled by
+ * Clerk; `clerkUserId` links a row to its Clerk user (null until that person
+ * first signs in, e.g. an invited staff member). Whether a user is staff is
+ * decided by rows in user_roles, never by a client-supplied flag. `isStaff` is
+ * a denormalised hint for listing only.
  */
 export const users = pgTable(
   "users",
   {
     id: id(),
+    clerkUserId: text("clerk_user_id").unique(),
     name: text("name").notNull(),
     email: text("email").notNull(),
     emailVerified: boolean("email_verified").notNull().default(false),
@@ -36,61 +39,6 @@ export const users = pgTable(
     uniqueIndex("users_email_lower_uq").on(sql`lower(${t.email})`),
     index("users_is_staff_idx").on(t.isStaff),
   ],
-);
-
-/** Better Auth sessions. Token is opaque; cookie is httpOnly. */
-export const sessions = pgTable(
-  "sessions",
-  {
-    id: id(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    token: text("token").notNull().unique(),
-    expiresAt: ts("expires_at").notNull(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    ...timestamps(),
-  },
-  (t) => [index("sessions_user_idx").on(t.userId)],
-);
-
-/** Better Auth credential/provider accounts (password hash lives here). */
-export const accounts = pgTable(
-  "accounts",
-  {
-    id: id(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    accountId: text("account_id").notNull(),
-    providerId: text("provider_id").notNull(),
-    accessToken: text("access_token"),
-    refreshToken: text("refresh_token"),
-    idToken: text("id_token"),
-    accessTokenExpiresAt: ts("access_token_expires_at"),
-    refreshTokenExpiresAt: ts("refresh_token_expires_at"),
-    scope: text("scope"),
-    password: text("password"),
-    ...timestamps(),
-  },
-  (t) => [
-    index("accounts_user_idx").on(t.userId),
-    uniqueIndex("accounts_provider_account_uq").on(t.providerId, t.accountId),
-  ],
-);
-
-/** Better Auth verification values (email OTP, password reset tokens). */
-export const verifications = pgTable(
-  "verifications",
-  {
-    id: id(),
-    identifier: text("identifier").notNull(),
-    value: text("value").notNull(),
-    expiresAt: ts("expires_at").notNull(),
-    ...timestamps(),
-  },
-  (t) => [index("verifications_identifier_idx").on(t.identifier)],
 );
 
 export const customerProfiles = pgTable("customer_profiles", {

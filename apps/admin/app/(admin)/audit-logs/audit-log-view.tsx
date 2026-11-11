@@ -34,7 +34,8 @@ function summary(row: AuditLogRow): string {
   }
   if (row.action === "staff.update.roles" && after) return `Roles: ${((after.roles as string[]) ?? []).join(", ")}`;
   if (row.action === "staff.create" && after) return String(after.email ?? "");
-  if (row.action === "staff.deactivate" && after) return `${after.sessionsRevoked ?? 0} session(s) ended`;
+  if (row.action === "staff.deactivate" && after)
+    return after.sessionsRevoked === undefined ? "Access removed, signed out" : `${String(after.sessionsRevoked)} session(s) ended`;
   return row.entityType;
 }
 

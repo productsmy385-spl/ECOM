@@ -1,13 +1,15 @@
-import { getProfile, listSessions } from "@ecom/services";
+import { UserProfile } from "@clerk/nextjs";
+import { getProfile } from "@ecom/services";
+import { clerkAppearance } from "@ecom/ui/clerk-appearance";
 import type { Metadata } from "next";
 import { requireCustomer } from "@/lib/customer";
-import { PasswordForm, ProfileForm, SessionsCard } from "./forms";
+import { ProfileForm } from "./forms";
 
 export const metadata: Metadata = { title: "Profile & security", robots: { index: false } };
 
 export default async function ProfilePage() {
   const c = await requireCustomer("/account/profile");
-  const [profile, sessions] = await Promise.all([getProfile({ userId: c.userId }), listSessions({ userId: c.userId })]);
+  const profile = await getProfile({ userId: c.userId });
   return (
     <div className="space-y-6">
       <ProfileForm
@@ -19,21 +21,19 @@ export default async function ProfilePage() {
           marketingOptIn: profile.marketingOptIn,
         }}
       />
-      <PasswordForm />
-      <SessionsCard
-        sessions={sessions.map((s) => ({
-          id: s.id,
-          device: describeDevice(s.userAgent),
-          lastActive: s.updatedAt.toISOString(),
-        }))}
-      />
+      <section aria-labelledby="security-heading" className="space-y-3">
+        <div>
+          <h2 id="security-heading" className="font-display text-lg font-semibold">
+            Sign-in &amp; security
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Password, email, connected accounts and the devices you&apos;re signed in on.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <UserProfile routing="hash" appearance={clerkAppearance} />
+        </div>
+      </section>
     </div>
   );
-}
-
-function describeDevice(ua: string | null): string {
-  if (!ua) return "Unknown device";
-  const os = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iOS" : /Windows/i.test(ua) ? "Windows" : /Mac OS/i.test(ua) ? "macOS" : /Linux/i.test(ua) ? "Linux" : "Device";
-  const browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Browser";
-  return `${browser} on ${os}`;
 }

@@ -1,20 +1,28 @@
 /**
  * Integration tests against the real test database (ecom_test).
- * Covers: customer sign-up, staff-only admin sessions, suspended accounts,
- * server-controlled fields (no self-promotion to staff), and permission loading.
+ * Clerk proves who someone is; these tests cover how that identity is mapped to
+ * our users table: first sign-in creates a customer (never staff), invited staff
+ * are linked by verified email and keep their roles, unverified emails and closed
+ * accounts are refused, and suspended users resolve but stay inactive.
  */
-import { db, customerProfiles, roles, userRoles, users } from "@ecom/db";
-import { can } from "@ecom/rbac";
-import { eq, like, sql } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { loadActor } from "./actor";
-import { createAuth } from "./server";
+import { customerProfiles, db, roles, userRoles, users } from "@ecom/db";
+import { can, SUPER_ADMIN } from "@ecom/rbac";
+import { eq, like } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { hasAnyRole, loadActor } from "./actor";
+import { type ClerkIdentity, resolveClerkUser, syncIdentity, unlinkClerkUser } from "./identity";
 
-const web = createAuth("web");
-const admin = createAuth("admin");
 const run = `t${Date.now()}`;
 const email = (n: string) => `${n}.${run}@example.test`;
-const PASSWORD = "Customer#Pass1";
+const cid = (n: string) => `user_${n}_${run}`;
+const identity = (n: string, over: Partial<ClerkIdentity> = {}): ClerkIdentity => ({
+  clerkUserId: cid(n),
+  email: email(n),
+  emailVerified: true,
+  name: `Test ${n}`,
+  image: null,
+  ...over,
+});
 
 async function cleanup() {
   await db.delete(users).where(like(users.email, `%.${run}@example.test`));
@@ -23,105 +31,82 @@ async function cleanup() {
 beforeAll(cleanup);
 afterAll(cleanup);
 
-describe("customer auth (web)", () => {
-  it("signs up a customer, creates a profile and no roles", async () => {
-    const res = await web.api.signUpEmail({ body: { name: "Asha", email: email("asha"), password: PASSWORD } });
-    expect(res.user.email).toBe(email("asha"));
-    const [profile] = await db.select().from(customerProfiles).where(eq(customerProfiles.userId, res.user.id));
+describe("first sign-in", () => {
+  it("creates a customer with a profile and no roles", async () => {
+    const u = await resolveClerkUser(cid("asha"), async () => identity("asha"));
+    expect(u?.email).toBe(email("asha"));
+    expect(u?.status).toBe("active");
+    const [profile] = await db.select().from(customerProfiles).where(eq(customerProfiles.userId, u!.id));
     expect(profile).toBeDefined();
-    const actor = await loadActor(res.user.id);
-    expect(actor?.roles).toEqual([]);
-    expect(actor?.permissions.size).toBe(0);
+    const [row] = await db.select().from(users).where(eq(users.id, u!.id));
+    expect(row!.isStaff).toBe(false);
+    expect(await hasAnyRole(u!.id)).toBe(false);
   });
 
-  it("ignores attempts to self-assign server-controlled fields at sign-up", async () => {
-    const body = { name: "Mallory", email: email("mallory"), password: PASSWORD, isStaff: true, status: "active" };
-    // Better Auth rejects input:false fields outright; either rejection or ignoring is acceptable.
-    const attempt = web.api.signUpEmail({ body: body as never }).catch((e: unknown) => e);
-    const result = await attempt;
-    const [u] = await db.select().from(users).where(eq(users.email, email("mallory")));
-    if (u) expect(u.isStaff).toBe(false);
-    else expect(result).toBeInstanceOf(Error);
+  it("does not call Clerk again once linked", async () => {
+    const fetch = vi.fn(async () => identity("asha"));
+    const u = await resolveClerkUser(cid("asha"), fetch);
+    expect(u?.email).toBe(email("asha"));
+    expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("rejects a wrong password without revealing whether the email exists", async () => {
-    const wrong = await web.api
-      .signInEmail({ body: { email: email("asha"), password: "nope-nope-1" } })
-      .catch((e: { status?: string; body?: { message?: string } }) => e);
-    const missing = await web.api
-      .signInEmail({ body: { email: email("ghost"), password: "nope-nope-1" } })
-      .catch((e: { status?: string; body?: { message?: string } }) => e);
-    expect((wrong as { body?: { message?: string } }).body?.message).toBe(
-      (missing as { body?: { message?: string } }).body?.message,
+  it("refuses an unverified email (no row is created or linked)", async () => {
+    const u = await resolveClerkUser(cid("eve"), async () => identity("eve", { emailVerified: false }));
+    expect(u).toBeNull();
+    const rows = await db.select().from(users).where(eq(users.email, email("eve")));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("refuses an identity that doesn't match the session's Clerk user", async () => {
+    const u = await resolveClerkUser(cid("mallory"), async () => identity("victim"));
+    expect(u).toBeNull();
+  });
+});
+
+describe("invited staff", () => {
+  it("links the pre-created staff row by verified email and keeps its roles", async () => {
+    const [superAdmin] = await db.select().from(roles).where(eq(roles.key, SUPER_ADMIN));
+    const [staff] = await db
+      .insert(users)
+      .values({ name: "Invited Owner", email: email("owner"), isStaff: true })
+      .returning();
+    await db.insert(userRoles).values({ userId: staff!.id, roleId: superAdmin!.id });
+
+    // Clerk may report the address with different casing.
+    const u = await resolveClerkUser(cid("owner"), async () =>
+      identity("owner", { email: email("owner").toUpperCase(), name: "Someone Else" }),
     );
+    expect(u?.id).toBe(staff!.id);
+    expect(u?.name).toBe("Invited Owner"); // our record wins over the Clerk profile name
+    const actor = await loadActor(u!.id);
+    expect(can(actor!, "staff.manage")).toBe(true);
   });
 });
 
-describe("admin auth is staff-only", () => {
-  it("refuses an admin session to a customer, even with correct credentials", async () => {
-    const err = await admin.api
-      .signInEmail({ body: { email: email("asha"), password: PASSWORD } })
-      .then(() => null)
-      .catch((e: { status?: string }) => e);
-    expect(err).not.toBeNull();
-    expect((err as { status?: string }).status).toBe("FORBIDDEN");
+describe("account state", () => {
+  it("resolves a suspended user as suspended, and loadActor refuses them", async () => {
+    const u = await resolveClerkUser(cid("sus"), async () => identity("sus"));
+    await db.update(users).set({ status: "suspended" }).where(eq(users.id, u!.id));
+    const again = await resolveClerkUser(cid("sus"), async () => identity("sus"));
+    expect(again?.status).toBe("suspended");
+    expect(await loadActor(u!.id)).toBeNull();
   });
 
-  it("does not allow sign-up through the admin app", async () => {
-    const err = await admin.api
-      .signUpEmail({ body: { name: "Eve", email: email("eve"), password: PASSWORD } })
-      .then(() => null)
-      .catch((e: unknown) => e);
-    expect(err).not.toBeNull();
-    const [u] = await db.select().from(users).where(eq(users.email, email("eve")));
-    expect(u).toBeUndefined();
+  it("never resurrects a closed (soft-deleted) account", async () => {
+    await db.insert(users).values({ name: "Closed", email: email("closed"), deletedAt: new Date() });
+    const u = await resolveClerkUser(cid("closed"), async () => identity("closed"));
+    expect(u).toBeNull();
   });
 
-  it("grants an admin session once the user holds a staff role, with exactly that role's permissions", async () => {
-    const signUp = await web.api.signUpEmail({ body: { name: "Dev", email: email("designer"), password: PASSWORD } });
-    const [designerRole] = await db.select().from(roles).where(eq(roles.key, "designer"));
-    await db.insert(userRoles).values({ userId: signUp.user.id, roleId: designerRole!.id });
+  it("syncs profile changes and unlinks deleted Clerk users", async () => {
+    await syncIdentity(identity("asha", { name: "Asha Rao", image: "https://img.example/a.png" }));
+    const [row] = await db.select().from(users).where(eq(users.clerkUserId, cid("asha")));
+    expect(row!.name).toBe("Asha Rao");
+    expect(row!.image).toBe("https://img.example/a.png");
 
-    const res = await admin.api.signInEmail({ body: { email: email("designer"), password: PASSWORD } });
-    expect(res.user.id).toBe(signUp.user.id);
-
-    const actor = await loadActor(signUp.user.id);
-    expect(actor?.roles).toEqual(["designer"]);
-    expect(can(actor, "designs.view_assigned")).toBe(true);
-    expect(can(actor, "designs.view")).toBe(false);
-    expect(can(actor, "orders.view")).toBe(false);
-  });
-
-  it("seeded super admin can sign in and holds every permission", async () => {
-    const res = await admin.api.signInEmail({ body: { email: "root@test.local", password: "RootPassword#123" } });
-    const actor = await loadActor(res.user.id);
-    expect(actor?.roles).toContain("super_admin");
-    expect(can(actor, "permissions.manage")).toBe(true);
-  });
-});
-
-describe("suspended accounts", () => {
-  it("cannot sign in to either app, and loadActor returns null", async () => {
-    const res = await web.api.signUpEmail({ body: { name: "Sam", email: email("sam"), password: PASSWORD } });
-    await db.update(users).set({ status: "suspended" }).where(eq(users.id, res.user.id));
-
-    for (const app of [web, admin]) {
-      const err = await app.api
-        .signInEmail({ body: { email: email("sam"), password: PASSWORD } })
-        .then(() => null)
-        .catch((e: unknown) => e);
-      expect(err).not.toBeNull();
-    }
-    expect(await loadActor(res.user.id)).toBeNull();
-  });
-});
-
-describe("email uniqueness", () => {
-  it("is case-insensitive at the database level", async () => {
-    await expect(
-      db.execute(
-        sql`insert into users (name, email) values ('Dup', ${email("asha").toUpperCase()})`,
-      ),
-    ).rejects.toThrow();
+    await unlinkClerkUser(cid("asha"));
+    const [after] = await db.select().from(users).where(eq(users.id, row!.id));
+    expect(after!.clerkUserId).toBeNull();
+    expect(after!.email).toBe(email("asha")); // history (orders, addresses) stays attached
   });
 });

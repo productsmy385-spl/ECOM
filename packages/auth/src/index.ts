@@ -1,4 +1,18 @@
-export { createAuth, type Auth, type AppKind } from "./server";
 export { loadActor, hasAnyRole } from "./actor";
 export { sendEmail, simpleEmail } from "./email";
-export { toNextJsHandler } from "better-auth/next-js";
+export {
+  type AppUser,
+  type ClerkIdentity,
+  provisionFromIdentity,
+  resolveClerkUser,
+  syncIdentity,
+  unlinkClerkUser,
+} from "./identity";
+export {
+  clerk,
+  fetchClerkIdentity,
+  identityFromClerkUser,
+  type InviteResult,
+  revokeClerkSessions,
+  sendClerkInvitation,
+} from "./clerk";

@@ -1,4 +1,6 @@
 import { Providers } from "@/components/providers";
+import { ClerkProvider } from "@clerk/nextjs";
+import { clerkAppearance } from "@ecom/ui/clerk-appearance";
 import { siteConfig } from "@/config/site";
 import type { Metadata, Viewport } from "next";
 import { designFontVariables } from "@ecom/ui/design-fonts";
@@ -26,7 +28,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning className={`${sora.variable} ${inter.variable} ${designFontVariables}`}>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
-        <Providers>{children}</Providers>
+        <ClerkProvider
+          signInUrl="/admin/login"
+          signUpUrl="/admin/accept-invite"
+          afterSignOutUrl="/admin/login"
+          appearance={clerkAppearance}
+        >
+          <Providers>{children}</Providers>
+        </ClerkProvider>
       </body>
     </html>
   );

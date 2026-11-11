@@ -28,7 +28,8 @@ export interface StaffListItem {
 export interface StaffDetail extends StaffListItem {
   phone: string | null;
   employeeCode: string | null;
-  hasPassword: boolean;
+  hasJoined: boolean;
+  clerkUserId: string | null;
   permissions: string[];
 }
 

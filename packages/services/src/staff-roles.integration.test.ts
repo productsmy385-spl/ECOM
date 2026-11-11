@@ -4,8 +4,8 @@
  * protection, session revocation, IDOR (customers invisible), audit writes,
  * and the end-to-end invitation → set password → sign-in flow.
  */
-import { createAuth, loadActor } from "@ecom/auth";
-import { auditLogs, db, roles, sessions, userRoles, users, verifications } from "@ecom/db";
+import { loadActor, resolveClerkUser } from "@ecom/auth";
+import { auditLogs, db, roles, userRoles, users } from "@ecom/db";
 import { AuthorizationError, type Actor } from "@ecom/rbac";
 import { and, eq, inArray, like, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -70,7 +70,7 @@ afterAll(async () => {
 });
 
 describe("staff creation", () => {
-  it("creates a staff member without a password, with roles and an audit row", async () => {
+  it("creates a staff member with no credentials, with roles and an audit row", async () => {
     const ctx = await ctxOf(rootId);
     const staff = await createStaff(ctx, {
       name: "Priya",
@@ -81,7 +81,7 @@ describe("staff creation", () => {
     });
     expect(staff.email).toBe(mail("priya")); // normalised to lower case
     expect(staff.phone).toBe("+919876543210");
-    expect(staff.hasPassword).toBe(false);
+    expect(staff.hasJoined).toBe(false);
     expect(staff.roles.map((r) => r.key)).toEqual(["designer"]);
     expect(staff.permissions).toContain("designs.view_assigned");
 
@@ -120,35 +120,30 @@ describe("staff creation", () => {
 });
 
 describe("invitation flow", () => {
-  it("invite link sets a password, verifies the email and allows admin sign-in", async () => {
-    const auth = createAuth("admin");
+  it("the invited person's first Clerk sign-in links to the staff row and grants its roles", async () => {
     const staff = await createStaff(await ctxOf(rootId), {
       name: "Invitee",
       email: mail("invitee"),
       roleIds: [await roleId("staff")],
     });
-    await auth.api.requestPasswordReset({ body: { email: staff.email, redirectTo: "/admin/reset-password" } });
+    expect((await getStaff(await ctxOf(rootId), staff.id)).hasJoined).toBe(false);
 
-    const [v] = await db
-      .select({ identifier: verifications.identifier })
-      .from(verifications)
-      .where(and(like(verifications.identifier, "reset-password:%"), eq(verifications.value, staff.id)));
-    const token = v!.identifier.slice("reset-password:".length);
-
-    await auth.api.resetPassword({ body: { token, newPassword: "Invited#Pass123" } });
-    const signIn = await auth.api.signInEmail({ body: { email: staff.email, password: "Invited#Pass123" } });
-    expect(signIn.user.id).toBe(staff.id);
+    const clerkUserId = `user_invitee_${run}`;
+    const u = await resolveClerkUser(clerkUserId, async () => ({
+      clerkUserId,
+      email: staff.email,
+      emailVerified: true,
+      name: "Invitee",
+      image: null,
+    }));
+    expect(u?.id).toBe(staff.id);
 
     const detail = await getStaff(await ctxOf(rootId), staff.id);
-    expect(detail.hasPassword).toBe(true);
-    const [u] = await db.select({ v: users.emailVerified }).from(users).where(eq(users.id, staff.id));
-    expect(u?.v).toBe(true);
-
-    // The token is single-use.
-    await expect(auth.api.resetPassword({ body: { token, newPassword: "Another#Pass123" } })).rejects.toBeTruthy();
+    expect(detail.hasJoined).toBe(true);
+    expect(detail.clerkUserId).toBe(clerkUserId);
+    expect((await loadActor(staff.id))?.roles).toEqual(["staff"]);
   });
 });
-
 describe("staff updates and escalation", () => {
   it("nobody changes their own roles, but may edit their own name", async () => {
     const ctx = await ctxOf(admin);
@@ -195,18 +190,12 @@ describe("staff updates and escalation", () => {
     await updateStaff(ctxB, rootId, { name: "Root Admin", roleIds: [await roleId("super_admin")] });
   });
 
-  it("deactivation revokes sessions immediately and blocks the actor", async () => {
-    await db.insert(sessions).values({
-      userId: designer,
-      token: `tok-${run}`,
-      expiresAt: new Date(Date.now() + 3_600_000),
-    });
+  it("deactivation blocks the actor on the next request", async () => {
     const ctx = await ctxOf(admin);
     await expect(setStaffStatus(ctx, admin, { active: false })).rejects.toBeInstanceOf(AuthorizationError); // self
     const res = await setStaffStatus(ctx, designer, { active: false });
     expect(res.status).toBe("suspended");
-    const left = await db.select().from(sessions).where(eq(sessions.userId, designer));
-    expect(left).toHaveLength(0);
+
     expect(await loadActor(designer)).toBeNull();
     await setStaffStatus(ctx, designer, { active: true });
   });

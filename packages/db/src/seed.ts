@@ -9,11 +9,9 @@
  * Contains no demo products, orders or customers.
  */
 import { ALL_PERMISSIONS, PERMISSIONS, SUPER_ADMIN, SYSTEM_ROLES } from "@ecom/rbac";
-import { hashPassword } from "better-auth/crypto";
 import { eq, inArray, sql } from "drizzle-orm";
 import { createDb } from "./client";
 import {
-  accounts,
   categories,
   permissions,
   rolePermissions,
@@ -100,42 +98,33 @@ async function main() {
 
   // 5. First Super Admin.
   const email = process.env.SEED_SUPERADMIN_EMAIL?.trim().toLowerCase();
-  const password = process.env.SEED_SUPERADMIN_PASSWORD;
-  if (email && password) {
+  if (email) {
     const existing = await db
       .select({ id: users.id })
       .from(users)
       .where(sql`lower(${users.email}) = ${email}`);
     if (existing.length === 0) {
-      if (password.length < 12 && process.env.NODE_ENV === "production") {
-        throw new Error("SEED_SUPERADMIN_PASSWORD must be at least 12 characters in production");
-      }
+
       await db.transaction(async (tx) => {
         const [u] = await tx
           .insert(users)
           .values({
             name: process.env.SEED_SUPERADMIN_NAME ?? "Super Admin",
             email,
-            emailVerified: true,
             isStaff: true,
           })
           .returning({ id: users.id });
-        await tx.insert(accounts).values({
-          userId: u!.id,
-          accountId: u!.id,
-          providerId: "credential",
-          password: await hashPassword(password),
-        });
+
         await tx.insert(staffProfiles).values({ userId: u!.id, designation: "Owner" });
         const [r] = await tx.select({ id: roles.id }).from(roles).where(eq(roles.key, SUPER_ADMIN));
         await tx.insert(userRoles).values({ userId: u!.id, roleId: r!.id });
       });
-      console.log(`[seed] created Super Admin ${email} — change the password after first login`);
+      console.log(`[seed] created Super Admin ${email}: sign in to the admin with Clerk using this email to take it over`);
     } else {
       console.log(`[seed] Super Admin ${email} already exists — unchanged`);
     }
   } else {
-    console.log("[seed] SEED_SUPERADMIN_EMAIL/PASSWORD not set — skipped Super Admin");
+    console.log("[seed] SEED_SUPERADMIN_EMAIL not set: skipped Super Admin");
   }
 
   const roleCount = await db.select({ n: sql<number>`count(*)::int` }).from(roles);

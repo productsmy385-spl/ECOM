@@ -12,7 +12,6 @@ import {
   productImages,
   products,
   productVariants,
-  sessions,
   users,
   wishlistItems,
   wishlists,
@@ -59,15 +58,6 @@ export async function updateProfile(c: CustomerContext, raw: unknown) {
       .onConflictDoUpdate({ target: customerProfiles.userId, set: { dateOfBirth: input.dateOfBirth, marketingOptIn: input.marketingOptIn } });
   });
   return getProfile(c);
-}
-
-/** Active sign-ins for "devices" (no token values are ever returned). */
-export async function listSessions(c: CustomerContext) {
-  return db
-    .select({ id: sessions.id, createdAt: sessions.createdAt, updatedAt: sessions.updatedAt, userAgent: sessions.userAgent, ipAddress: sessions.ipAddress })
-    .from(sessions)
-    .where(and(eq(sessions.userId, c.userId), sql`${sessions.expiresAt} > now()`))
-    .orderBy(desc(sessions.updatedAt));
 }
 
 // =============================================================== addresses

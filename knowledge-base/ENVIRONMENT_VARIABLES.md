@@ -9,7 +9,9 @@ Template: [`/.env.example`](../.env.example). Locally there is a single root `.e
 | `DATABASE_POOL_MAX` | apps | no | Default 10 per instance. Keep `instances × pool` below Postgres `max_connections`. |
 | `MIGRATIONS_DIR` | migrate bundle | image | Set in the Dockerfile |
 | `REDIS_URL` | jobs/cache | Phase 6+ | |
-| `BETTER_AUTH_SECRET` | apps | yes | ≥32 random bytes. **Same value in web and admin.** Rotating it signs everyone out. |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | apps (+ Docker build arg) | yes | Clerk publishable key. Public; read by Clerk at **build** time, so it must exist before the Railway build. Same in web and admin. |
+| `CLERK_SECRET_KEY` | apps | yes | Clerk secret key (Backend API: user lookup, invitations, session revocation). Same in web and admin. |
+| `CLERK_WEBHOOK_SIGNING_SECRET` | web | no | Enables `/api/webhooks/clerk` (profile sync, unlink on delete). |
 | `WEB_URL` / `ADMIN_URL` | apps | yes | Public origins with no path (admin's `/admin` basePath is added in code). Also the CSRF allow-list. |
 | `SEED_SUPERADMIN_EMAIL` / `_PASSWORD` / `_NAME` | seed | first run | Remove from Railway after bootstrapping |
 | `NEXT_PUBLIC_BRAND_NAME` | apps | no | Placeholder "Crimsonne" |

@@ -10,7 +10,7 @@ Project documentation for the custom-design e-commerce platform: a single busine
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Topology, packages, key decisions, request flow |
 | [DATABASE.md](DATABASE.md) · [ERD.md](ERD.md) | Schema conventions, constraints, migrations, backups |
 | [RBAC.md](RBAC.md) | Permissions, role matrix, escalation rules, isolation |
-| [AUTHENTICATION.md](AUTHENTICATION.md) | Better Auth setup for customers and staff |
+| [AUTHENTICATION.md](AUTHENTICATION.md) | Clerk sign-in, linking Clerk users to our users, staff invitations |
 | [SECURITY.md](SECURITY.md) | Controls in place and planned |
 | [UI_UX_GUIDELINES.md](UI_UX_GUIDELINES.md) | Tokens, contrast rules, typography, layout |
 | [TESTING.md](TESTING.md) | Test layers, test DB, latest results |

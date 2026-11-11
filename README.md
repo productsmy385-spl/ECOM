@@ -2,13 +2,13 @@
 
 The storefront and admin dashboard for a single business selling cosmetics, eyewear and accessories, with product customization. "Crimsonne" is a placeholder brand name, set through `NEXT_PUBLIC_BRAND_NAME`.
 
-**Stack:** Next.js 16 · React 19 · TypeScript · Tailwind v4 · PostgreSQL 17 + Drizzle · Better Auth · pnpm workspaces · Railway.
+**Stack:** Next.js 16 · React 19 · TypeScript · Tailwind v4 · PostgreSQL 17 + Drizzle · Clerk · pnpm workspaces · Railway.
 
 ```
 apps/web      storefront              http://localhost:3000
 apps/admin    admin dashboard         http://localhost:3001/admin
 packages/db   schema, migrations, seed
-packages/auth Better Auth config, actor loading, email
+packages/auth Clerk ↔ users linking, staff invitations, actor (roles/permissions) loading, email
 packages/rbac permissions, roles, guards
 packages/ui   brand tokens, formatting
 knowledge-base/   all project documentation
@@ -19,14 +19,14 @@ Requires Node ≥ 20, pnpm 12 and Docker.
 
 ```bash
 pnpm install
-cp .env.example .env          # then set BETTER_AUTH_SECRET and SEED_SUPERADMIN_*
+cp .env.example .env          # then set the CLERK_* keys and SEED_SUPERADMIN_EMAIL
 pnpm db:up                    # Postgres :5433, Redis :6380
 pnpm db:migrate
 pnpm db:seed                  # roles, permissions, categories, first Super Admin
 pnpm dev                      # web :3000 + admin :3001
 ```
 
-Sign in at http://localhost:3001/admin/login with the `SEED_SUPERADMIN_*` credentials.
+Sign in at http://localhost:3001/admin/login through Clerk with the `SEED_SUPERADMIN_EMAIL` address. Your first sign-in links that Clerk account to the seeded Super Admin record, and it only links when the email is verified.
 
 Optional, **development only**: load a demo catalog (12 products, fictional brands, no images) so the storefront has something to show. This is refused in production.
 
