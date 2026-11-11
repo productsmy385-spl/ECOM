@@ -7,6 +7,9 @@ export default clerkMiddleware();
 
 export const config = {
   matcher: [
+    // The basePath root (/admin) must be listed explicitly: the pattern below
+    // does not match it, and auth() then throws (production 500 on /admin).
+    "/",
     // Everything except Next internals and static files...
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // ...and always API routes.

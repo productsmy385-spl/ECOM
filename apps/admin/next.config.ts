@@ -23,6 +23,14 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   transpilePackages: ["@ecom/auth", "@ecom/db", "@ecom/rbac", "@ecom/services", "@ecom/ui", "@ecom/validation"],
   poweredByHeader: false,
+  // The admin only exists under /admin. Anything else on this domain (e.g. the
+  // bare domain, or /login) is sent there instead of a 404.
+  async redirects() {
+    return [
+      { source: "/", destination: "/admin", permanent: false, basePath: false },
+      { source: "/:path((?!admin(?:/|$)).*)", destination: "/admin/:path", permanent: false, basePath: false },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
