@@ -29,7 +29,9 @@ test("home page shows the brand, products and sends security headers", async ({ 
   expect(h["x-content-type-options"]).toBe("nosniff");
   await expect(page).toHaveTitle(/Adira/i);
   await expect(page.locator('a[href^="/products/"]').first()).toBeVisible();
-  await page.waitForLoadState("networkidle");
+  // Not "networkidle": on real domains Clerk keeps polling, so the network never goes idle.
+  await page.waitForLoadState("load");
+  await page.waitForTimeout(2_000);
   await w.assertClean();
 });
 
