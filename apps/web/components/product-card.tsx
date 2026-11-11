@@ -5,6 +5,7 @@ import { Price } from "./price";
 import { ProductImage } from "./product-image";
 import { QuickViewButton } from "./quick-view";
 import { RatingPill } from "./rating";
+import { WishlistButton } from "./wishlist";
 
 export function ProductCard({ product, priority, className }: { product: Card; priority?: boolean; className?: string }) {
   return (
@@ -33,6 +34,7 @@ export function ProductCard({ product, priority, className }: { product: Card; p
           <div className="absolute inset-x-0 bottom-0 bg-white/90 py-1.5 text-center text-xs font-semibold text-muted-foreground">Out of stock</div>
         )}
         <QuickViewButton slug={product.slug} name={product.name} />
+        <WishlistButton productId={product.id} name={product.name} className="absolute right-2 top-2 z-10" />
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-3 sm:p-4">
         {product.brandName && <p className="truncate text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{product.brandName}</p>}

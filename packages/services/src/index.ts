@@ -14,6 +14,7 @@ export {
 export * from "./catalog-admin";
 export * from "./catalog-public";
 export * from "./customization";
+export * from "./account";
 export { slugify } from "./slug";
 export {
   listStaff,

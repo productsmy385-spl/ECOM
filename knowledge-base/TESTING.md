@@ -40,6 +40,16 @@ Note: sign-in is rate limited to 5 per minute per IP, and this includes localhos
 - Playwright end-to-end (desktop and mobile): admin options preset → customer picks options, adds and drags text, changes font → live price ₹1,598 (base ₹1,299 + ₹99 + ₹200) → save → submit → staff assign → request changes → customer sees the message, edits and resubmits → staff approve → editing locked. Another visitor gets 404 on the page and the API. No console errors and no overflow.
 - Defects found and fixed: the mobile action buttons collapsed (`flex-1` in a column); dragging selected SVG text.
 
+## Phase 5 results (2026-11-11) `[fact]`
+- `pnpm test`: **95/95 passed** (adds 6 account integration tests).
+- Playwright end-to-end (production build). Every check passed:
+  - **Guest to customer:** guest design saved; signed-out heart redirects to `/login?next=`; registration rejected a weak password, then succeeded and returned to `next`; the guest design was claimed into the account.
+  - **Account features:** wishlist badge and page; address with a bad PIN rejected, then saved as default; profile saved; password changed; signed out and back in with the new password.
+  - **No email provider:** the email-code tab is hidden.
+  - **Protection:** anonymous `/account` redirects to login; anonymous API gets 401; a second customer gets 404 on the first customer's design and sees no addresses; cross-origin write gets 403.
+  - **Mobile:** no overflow.
+- **Defect found and fixed:** the wishlist badge was stale after client-side sign-in (provider state survived the auth change). Regression script confirms the fix.
+
 ## Rules
 - Every protected API gets a test proving (a) 401 when anonymous, (b) 403/404 without the permission, and (c) 404 for another user's record (IDOR).
 - Don't mock the database in integration tests.

@@ -5,7 +5,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { navCategories } from "@/lib/catalog";
 import { getStoreSettings } from "@/lib/settings";
+import { getCustomer } from "@/lib/customer";
+import { AccountMenu } from "./account-menu";
 import { MobileNav } from "./mobile-nav";
+import { WishlistHeaderLink } from "./wishlist";
 import { SearchBox } from "./search-box";
 
 export function Logo() {
@@ -20,7 +23,7 @@ export function Logo() {
 }
 
 export async function SiteHeader() {
-  const [cats, settings] = await Promise.all([navCategories(), getStoreSettings()]);
+  const [cats, settings, customer] = await Promise.all([navCategories(), getStoreSettings(), getCustomer()]);
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
@@ -41,7 +44,11 @@ export async function SiteHeader() {
           <Suspense fallback={<div className="hidden h-11 flex-1 rounded-full bg-muted md:block" />}>
             <SearchBox className="hidden flex-1 md:block lg:max-w-2xl" />
           </Suspense>
-          {/* Account, wishlist and cart controls arrive with those features (Phases 5–6). */}
+          <div className="ml-auto flex items-center gap-1">
+            <AccountMenu name={customer?.name ?? null} />
+            <WishlistHeaderLink />
+            {/* Cart arrives with checkout (Phase 6). */}
+          </div>
         </div>
         <div className="container-store pb-3 md:hidden">
           <Suspense fallback={<div className="h-11 rounded-full bg-muted" />}>

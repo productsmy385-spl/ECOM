@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { Price } from "@/components/price";
 import { ProductImage } from "@/components/product-image";
 import { RatingPill } from "@/components/rating";
+import { WishlistButton } from "@/components/wishlist";
 import { cn } from "@/lib/utils";
 
 type Variant = ProductDetail["variants"][number];
@@ -208,6 +209,8 @@ export function ProductView({ product, initialSku, customizable }: { product: Pr
             </Link>
           </div>
         )}
+
+        <WishlistButton productId={product.id} name={product.name} variant="full" className="self-start" />
 
         <div className="flex gap-3 rounded-xl border border-border p-4">
           <Truck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />

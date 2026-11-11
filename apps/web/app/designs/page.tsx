@@ -15,7 +15,15 @@ export default async function MyDesignsPage() {
   return (
     <div className="container-store max-w-4xl py-8">
       <h1 className="font-display text-2xl font-bold sm:text-3xl">My designs</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Designs saved on this device. Sign-in to keep them across devices is coming with customer accounts.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {owner && "customerId" in owner ? (
+          "Saved to your account. Available on any device you sign in on."
+        ) : (
+          <>
+            Saved on this device. <Link href="/login?next=%2Fdesigns" className="text-link hover:underline">Sign in</Link> to keep them in your account.
+          </>
+        )}
+      </p>
       {designs.length === 0 ? (
         <div className="mt-8 flex flex-col items-center rounded-2xl border border-dashed border-border px-6 py-14 text-center">
           <Palette className="h-9 w-9 text-primary" aria-hidden="true" />

@@ -57,8 +57,13 @@ Deferred, deliberately:
 ## Phase 4: Customization engine ⬜
 Option configuration in admin. Customer configurator and canvas editor (layers, text, fonts, colour, image upload via signed ImageKit, reset, save, preview). Versioned designs.
 
-## Phase 5: Customer accounts ⬜
-Sign-up, sign-in (password and OTP), profile, addresses, wishlist, saved designs, account dashboard.
+## Phase 5: Customer accounts ✅ (2026-11-11)
+- ✅ Register, sign in (password; email code when email is configured), forgot/reset, sign out. Safe `?next=` return paths.
+- ✅ Account area: overview, profile + password + devices (sign out others), address book (Indian validation, single default), wishlist, designs.
+- ✅ Header account menu + wishlist count; hearts on product cards and product pages (optimistic, rolls back on failure).
+- ✅ Guest designs claimed into the account on sign-in.
+- ✅ 6 integration tests (isolation, default rules, wishlist, profile) + browser end-to-end (guest → register → claim → wishlist → addresses → password → re-sign-in; cross-customer 404, anonymous 401, cross-origin 403).
+- 🟡 Email-code sign-in and reset emails are untested end to end until Resend is configured (the UI hides or explains them meanwhile).
 
 ## Phase 6: Cart and checkout ⬜
 Cart (guest and user, merge on login). Coupons. GST and shipping. Razorpay order, signature check, webhook and idempotency. COD flag. Transactional order creation with stock reservation. Redis and BullMQ.

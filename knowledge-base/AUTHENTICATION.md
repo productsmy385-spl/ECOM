@@ -38,7 +38,22 @@ Set `SEED_SUPERADMIN_EMAIL` / `SEED_SUPERADMIN_PASSWORD` / `SEED_SUPERADMIN_NAME
 
 Staff passwords need at least **10** characters, enforced by Better Auth for the admin app. The forms also require letters plus digits. Customers need at least 8.
 
+## Customer accounts (Phase 5) `[fact]`
+| Page | What it does |
+|---|---|
+| `/register` | Name, email, password (≥ 8 characters, letters + numbers), optional marketing opt-in. Signs the customer in immediately. |
+| `/login` | Password, or **email code** (6 digits, 5 min). The code tab only appears when email can actually be delivered (`RESEND_API_KEY` set, or development, where codes are printed to the server log). |
+| `/forgot-password`, `/reset-password` | Reset link (30 min, single use). Without an email provider the page shows support contact details instead of pretending to send. |
+| `/account/*` | Overview, profile (name, mobile, DOB, marketing), password change (signs out other devices), devices list with "sign out of other devices", addresses, wishlist |
+
+- **Post-login destinations** come only from `?next=`, and `safeNext()` accepts same-site relative paths only (no open redirect).
+- **Guest designs are claimed** automatically: when a signed-in request still carries the guest design cookie, its designs move to the account and the cookie is cleared (`lib/design-owner.ts`).
+- Customer-facing APIs (`/api/account/*`) take the customer id **only from the session**: 401 when signed out, 404 for other people's records, 403 for cross-origin writes.
+- The wishlist provider is keyed by user id, because sign-in and sign-out happen without a full reload (see KNOWN-ISSUES).
+
 ## Not yet built
-- Customer sign-in and sign-up pages, account area and guest checkout: Phase 5
+- Guest checkout: Phase 6
+- Phone/SMS OTP: needs an SMS provider (open question)
+- Email verification is not enforced at sign-up `[proposed]`: enforce it once Resend is live.
 - A staff "active sessions" list: Phase 10
 - Phone or SMS OTP: needs an SMS provider. Not yet decided; see OPEN_QUESTIONS.

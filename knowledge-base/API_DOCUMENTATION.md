@@ -89,6 +89,10 @@ Rate limits are per IP and in memory (see SECURITY.md).
 | `GET /api/search/suggest?q=` | 60/min | `{ products[≤6], categories[≤4], brands[≤4] }`. Queries shorter than 2 characters return nothing. |
 | `GET /api/products/:slug` | 120/min | Published products only. Availability is coarse (`in_stock \| low_stock \| out_of_stock`); exact stock counts are never exposed. |
 | `POST /api/newsletter` | 5/min | `{ email }`. Same-origin only. Idempotent, and returns the same response for new and existing addresses. |
+| `GET /api/account/profile` · `PATCH` | 60/min · 20/min | Signed-in customer only (401 otherwise). PATCH `{ name, phone?, dateOfBirth?, marketingOptIn }`. |
+| `GET /api/account/addresses` · `POST` | 60/min · 20/min | Indian addresses: 6-digit PIN, state from the list, mobile normalised to +91. The first address becomes the default. Max 20. |
+| `PATCH/DELETE/POST /api/account/addresses/:id` | 60/min | POST = make default. Someone else's id → 404. Delete is soft and promotes another default. |
+| `GET/POST/DELETE /api/account/wishlist` | 60/min | POST/DELETE `{ productId }` (idempotent; published products only; max 200) |
 | `GET /api/designs` · `POST` | 60/min · 20/min | My designs; create (sets the owner cookie on first save) |
 | `GET/PUT/DELETE /api/designs/:id` | 60/min | PUT body `{ config, variantId?, name?, baseVersion }`, 409 if stale or locked. DELETE only for editable designs. |
 | `POST /api/designs/:id/submit` · `/duplicate` | 20/min | Submit enforces required options |
