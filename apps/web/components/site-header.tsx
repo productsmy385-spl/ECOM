@@ -8,6 +8,7 @@ import { navCategories } from "@/lib/catalog";
 import { getCustomer } from "@/lib/customer";
 import { resolveShopper } from "@/lib/design-owner";
 import { getStoreSettings } from "@/lib/settings";
+import { websiteSettings } from "@/lib/website";
 import { AccountMenu } from "./account-menu";
 import { CartHeaderLink } from "./add-to-cart";
 import { MobileNav } from "./mobile-nav";
@@ -25,11 +26,30 @@ export function Logo() {
 const navLink = "inline-flex items-center gap-1 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.09em] text-foreground transition-colors duration-300 hover:text-primary";
 
 export async function SiteHeader() {
-  const [cats, settings, customer, shopper] = await Promise.all([navCategories(), getStoreSettings(), getCustomer(), resolveShopper({ create: false })]);
+  const [cats, settings, customer, shopper, site] = await Promise.all([navCategories(), getStoreSettings(), getCustomer(), resolveShopper({ create: false }), websiteSettings()]);
   const bagCount = shopper ? await cartCount(shopper) : 0;
-  const support = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+  const support = site.contact.email || process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
+  const ann = site.announcement;
 
   return (
+    <>
+    {ann.enabled && ann.text && (
+      <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:text-sm">
+        {ann.href ? (
+          ann.href.startsWith("/") ? (
+            <Link href={ann.href} className="underline-offset-2 hover:underline">
+              {ann.text} <span aria-hidden="true">→</span>
+            </Link>
+          ) : (
+            <a href={ann.href} rel="noopener" className="underline-offset-2 hover:underline">
+              {ann.text} <span aria-hidden="true">→</span>
+            </a>
+          )
+        ) : (
+          ann.text
+        )}
+      </div>
+    )}
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
       {/* Info strip: three short messages, all from store settings. */}
       <div className="hidden border-b border-border md:block">
@@ -125,5 +145,6 @@ export async function SiteHeader() {
         </div>
       </div>
     </header>
+    </>
   );
 }

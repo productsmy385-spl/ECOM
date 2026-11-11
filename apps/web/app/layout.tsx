@@ -10,19 +10,27 @@ import { SiteHeader } from "@/components/site-header";
 import { WishlistProvider } from "@/components/wishlist";
 import { getCustomer } from "@/lib/customer";
 import { wishlistProductIds } from "@ecom/services";
+import { getTemplate, templateCssVars } from "@ecom/ui/website-templates";
+import { websiteSettings } from "@/lib/website";
 import "./globals.css";
 
 const sora = Sora({ variable: "--font-sora", subsets: ["latin"], display: "swap" });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.WEB_URL ?? "http://localhost:3000"),
-  title: { default: `${brand.name}: Custom Photo Frames & Resin Art Frames`, template: `%s | ${brand.name}` },
-  description: "Custom photo frames, collage frames and handmade resin (glue-art) frames. Upload your photo, add names and design your own.",
-  openGraph: { siteName: brand.name, type: "website", locale: "en_IN" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { seo } = await websiteSettings();
+  return {
+    metadataBase: new URL(process.env.WEB_URL ?? "http://localhost:3000"),
+    title: { default: seo.title || `${brand.name}: Custom Photo Frames & Resin Art Frames`, template: `%s | ${brand.name}` },
+    description: seo.description || "Custom photo frames, collage frames and handmade resin (glue-art) frames. Upload your photo, add names and design your own.",
+    openGraph: { siteName: brand.name, type: "website", locale: "en_IN" },
+  };
+}
 
-export const viewport: Viewport = { themeColor: "#CF0F47" };
+export async function generateViewport(): Promise<Viewport> {
+  const s = await websiteSettings();
+  return { themeColor: getTemplate(s.template).colors.primary };
+}
 
 // Every page includes the DB-driven header/footer (live categories, store
 // settings), so nothing may be prerendered at build time: builds run without
@@ -30,11 +38,13 @@ export const viewport: Viewport = { themeColor: "#CF0F47" };
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const customer = await getCustomer();
+  const [customer, site] = await Promise.all([getCustomer(), websiteSettings()]);
   const wishlistIds = customer ? await wishlistProductIds({ userId: customer.userId }) : [];
+  // Template colours and shapes as CSS variables (vetted values only; see website-templates.ts).
+  const themeVars = templateCssVars(site.template, site.corners, site.headingFont) as React.CSSProperties;
   return (
     <ClerkProvider signInUrl="/login" signUpUrl="/register" afterSignOutUrl="/" appearance={clerkAppearance}>
-    <html lang="en-IN" className={`${sora.variable} ${inter.variable} ${designFontVariables}`}>
+    <html lang="en-IN" className={`${sora.variable} ${inter.variable} ${designFontVariables}`} style={themeVars} data-template={site.template}>
       <body className="flex min-h-screen flex-col antialiased">
         <Preloader />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">

@@ -21,8 +21,8 @@
   --color-crimson-700: #a80c3a;
   --color-crimson-800: #850a2e;
   --color-hotpink: #ff0b55;
-  --color-blush: #ffdede;
-  --color-blush-50: #fff5f5;
+  --color-blush: var(--blush, #ffdede);
+  --color-blush-50: var(--blush-50, #fff5f5);
   --color-ink: #000000;
 
   /* Semantic colours (switch with theme) */
@@ -58,7 +58,7 @@
   --color-sidebar-border: var(--sidebar-border);
 
   /* Typography: Sora is the primary (display/UI) face, Inter the body face */
-  --font-display: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading, var(--font-sora), ui-sans-serif, system-ui, sans-serif);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
@@ -69,14 +69,14 @@
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
+  --radius-xl: var(--radius-card, 0.75rem);
+  --radius-2xl: var(--radius-card-lg, 1rem);
 
   /* Elevation: resting card · floating menu/hover · dialog */
   --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
   --shadow-dropdown: 0 8px 24px -6px rgb(0 0 0 / 0.14), 0 2px 6px -2px rgb(0 0 0 / 0.06);
   --shadow-modal: 0 24px 48px -12px rgb(0 0 0 / 0.25);
-  --shadow-product: 0 12px 28px -12px rgb(207 15 71 / 0.25);
+  --shadow-product: 0 12px 28px -12px rgb(var(--glow, 207 15 71) / 0.25);
 
   --animate-fade-in: fade-in 0.3s ease-out;
   --animate-fade-in-up: fade-in-up 0.35s ease-out;

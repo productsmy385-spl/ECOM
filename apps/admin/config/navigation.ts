@@ -1,6 +1,6 @@
 import type { Permission } from "@ecom/rbac";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, Boxes, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
+import { BarChart3, Boxes, Brush, GalleryHorizontal, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -60,7 +60,10 @@ export const navigation: NavGroup[] = [
   },
   {
     label: "Marketing",
-    items: [{ title: "Coupons", href: "/coupons", icon: TicketPercent, anyOf: ["marketing.manage"] }],
+    items: [
+      { title: "Coupons", href: "/coupons", icon: TicketPercent, anyOf: ["marketing.manage"] },
+      { title: "Banners", href: "/banners", icon: GalleryHorizontal, anyOf: ["marketing.manage"] },
+    ],
   },
   {
     label: "Administration",
@@ -69,6 +72,7 @@ export const navigation: NavGroup[] = [
       { title: "Roles", href: "/roles", icon: ShieldCheck, anyOf: ["roles.manage", "permissions.manage", "staff.view"] },
       { title: "Permissions", href: "/permissions", icon: KeyRound, anyOf: ["permissions.manage", "roles.manage"] },
       { title: "Audit Logs", href: "/audit-logs", icon: ScrollText, anyOf: ["audit_logs.view"] },
+      { title: "Website settings", href: "/settings/website", icon: Brush, anyOf: ["settings.manage"] },
       { title: "Checkout settings", href: "/settings/checkout", icon: Settings, anyOf: ["settings.manage"] },
     ],
   },

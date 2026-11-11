@@ -30,7 +30,7 @@ a {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill, 9999px);
   padding: 0.95rem 2.25rem;
   font-weight: 600;
   font-size: 0.95rem;
@@ -206,4 +206,9 @@ a {
   .loader-bar {
     animation: none;
   }
+}
+
+/* Website templates may set a serif heading font; buttons and the nav stay in Sora. */
+button, .btn-pill {
+  font-family: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 }
