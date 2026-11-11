@@ -1,17 +1,17 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
-import { claimGuestDesigns, type DesignOwner } from "@ecom/services";
+import { claimGuestDesigns, type DesignOwner, mergeGuestCart } from "@ecom/services";
 import { cookies } from "next/headers";
 import { getCustomer } from "./customer";
 
 /**
- * Who owns designs for this request:
- *  1. a signed-in customer (verified Better Auth session), else
+ * Who owns designs AND the cart for this request (the "shopper"):
+ *  1. a signed-in customer (verified Clerk session → our users.id), else
  *  2. an anonymous visitor identified by an httpOnly random token cookie.
  * Never derived from request bodies or query strings.
  *
- * When a visitor with guest designs signs in, those designs are moved to the
- * account on their next design request (idempotent).
+ * When a visitor with guest designs or a guest cart signs in, both are moved
+ * to the account on their next request that resolves the shopper (idempotent).
  */
 export const GUEST_COOKIE = "ecom_design_owner";
 const TOKEN = /^[A-Za-z0-9_-]{43}$/; // 32 random bytes, base64url
@@ -25,6 +25,7 @@ export async function resolveDesignOwner({ create }: { create: boolean }): Promi
   if (customer) {
     if (guestToken) {
       await claimGuestDesigns(customer.userId, guestToken);
+      await mergeGuestCart(customer.userId, guestToken);
       try {
         jar.delete(GUEST_COOKIE); // allowed in route handlers; ignored during page render
       } catch {
@@ -47,3 +48,6 @@ export async function resolveDesignOwner({ create }: { create: boolean }): Promi
   });
   return { guestToken: token };
 }
+
+/** Alias: the same identity owns the cart. */
+export const resolveShopper = resolveDesignOwner;

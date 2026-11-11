@@ -17,7 +17,8 @@ Template: [`/.env.example`](../.env.example). Locally there is a single root `.e
 | `NEXT_PUBLIC_BRAND_NAME` | apps | no | Placeholder "Crimsonne" |
 | `NEXT_PUBLIC_SUPPORT_EMAIL` | web | no | |
 | `RESEND_API_KEY`, `EMAIL_FROM` | auth/notifications | prod | Empty means emails are logged (dev only) |
-| `RAZORPAY_KEY_ID` / `_KEY_SECRET` / `_WEBHOOK_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID` | payments | Phase 6 | |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | web (admin only checks whether they're set) | no | When **both** are set, "Pay online" appears at checkout. Browsers get the key id through our API, so there is no `NEXT_PUBLIC_` copy. |
+| `RAZORPAY_WEBHOOK_SECRET` | web | no | Enables `POST /api/webhooks/razorpay`; configure `payment.captured`, `order.paid` and `payment.failed` in the Razorpay dashboard. Without it the endpoint returns 503, and the browser callback plus the hold sweep still confirm payments. |
 | `IMAGEKIT_PUBLIC_KEY` / `_PRIVATE_KEY` / `_URL_ENDPOINT` | uploads | Phase 4 | |
 | `FCM_PROJECT_ID` / `_CLIENT_EMAIL` / `_PRIVATE_KEY` | push | Phase 8 | |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | delivery | Phase 8 | Restrict the key by HTTP referrer |

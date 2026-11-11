@@ -29,6 +29,13 @@
       "when": 1794366325007,
       "tag": "0003_clerk_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794368346011,
+      "tag": "0004_checkout",
+      "breakpoints": true
     }
   ]
 }

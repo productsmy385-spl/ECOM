@@ -395,6 +395,73 @@ export async function listMyDesigns(owner: DesignOwner) {
     .limit(MAX_DESIGNS_PER_OWNER);
 }
 
+/** Design statuses that may be ordered. Unapproved ones put the order into design review. */
+export const ORDERABLE_DESIGN_STATUSES = ["submitted", "in_review", "approved"] as const;
+
+export interface OrderableDesign {
+  designId: string;
+  name: string;
+  versionId: string;
+  productId: string;
+  variantId: string | null;
+  approved: boolean;
+  /** Normalised option values, summary lines and price, re-evaluated against today's options. */
+  values: Record<string, unknown>;
+  summary: SelectionResult["summary"];
+  priceDelta: number;
+  /** The full immutable version config (options + canvas), snapshotted onto order items. */
+  config: unknown;
+}
+
+/**
+ * A design as it would be ordered by `owner`, or a customer-facing reason it
+ * can't be. Ownership is enforced here; another shopper's design reads as missing.
+ */
+export async function loadOrderableDesign(
+  conn: DbOrTx,
+  owner: DesignOwner,
+  designId: string,
+): Promise<{ ok: true; design: OrderableDesign } | { ok: false; reason: string }> {
+  const [d] = await conn
+    .select()
+    .from(customerDesigns)
+    .where(and(eq(customerDesigns.id, designId), ownerWhere(owner), isNull(customerDesigns.deletedAt)));
+  if (!d || !d.currentVersionId) return { ok: false, reason: "This design is no longer available." };
+  if (!(ORDERABLE_DESIGN_STATUSES as readonly string[]).includes(d.status)) {
+    return { ok: false, reason: d.status === "changes_requested" ? "Our designers asked for changes to this design." : "Finish and submit this design before ordering it." };
+  }
+  const [v] = await conn.select().from(designVersions).where(eq(designVersions.id, d.currentVersionId));
+  const options = await loadOptions(conn, d.productId, true);
+  const raw = ((v?.config as { options?: Record<string, unknown> }) ?? {}).options ?? {};
+  const result = evaluateSelections(options, raw, { requireAll: true });
+  if (!result.ok) return { ok: false, reason: "This product's options changed. Open the design to update it." };
+  return {
+    ok: true,
+    design: {
+      designId: d.id,
+      name: d.name,
+      versionId: d.currentVersionId,
+      productId: d.productId,
+      variantId: d.variantId,
+      approved: d.status === "approved",
+      values: result.values,
+      summary: result.summary,
+      priceDelta: result.priceDelta,
+      config: v?.config ?? null,
+    },
+  };
+}
+
+/** True when the product has active required options, i.e. it can only be bought through a design. */
+export async function productRequiresDesign(conn: DbOrTx, productId: string): Promise<boolean> {
+  const [row] = await conn
+    .select({ id: customizationOptions.id })
+    .from(customizationOptions)
+    .where(and(eq(customizationOptions.productId, productId), eq(customizationOptions.isActive, true), eq(customizationOptions.isRequired, true)))
+    .limit(1);
+  return !!row;
+}
+
 /**
  * Finalise a design. Products that need design review go to the review queue;
  * others are ready immediately.

@@ -35,7 +35,7 @@ PostgreSQL 17 (local Docker) and Railway Postgres (production), accessed through
 - **Catalog**: `categories` (self-referencing tree), `brands`, `products`, `product_images`, `product_variants`, `product_attributes`, `customization_options`, `reviews`
 - **Inventory**: `inventory`, `inventory_movements` (append-only ledger), `suppliers`, `purchases`, `purchase_items`
 - **Designs**: `customer_designs`, `design_versions` (immutable, full config in jsonb), `design_approvals`, `design_notes`
-- **Commerce**: `carts`, `cart_items`, `wishlists`, `wishlist_items`, `coupons`, `coupon_redemptions`, `orders`, `order_items`, `order_status_history`, `order_notes`, `payments`, `payment_events`, `refunds`
+- **Commerce**: `carts`, `cart_items`, `wishlists`, `wishlist_items`, `coupons`, `coupon_redemptions`, `orders`, `order_items`, `order_status_history`, `order_notes`, `payments`, `payment_events`, `refunds`. Migration `0004_checkout` (2026-11-11) added the `order_number_seq` sequence (order numbers `ORD-YYYY-NNNNNN`, starting at 1001) and `orders.guest_access_hash` (the SHA-256 of a guest's order-link token).
 - **Operations**: `deliveries`, `delivery_assignments`, `delivery_status_history`, `notifications`, `push_tokens`, `support_tickets`, `support_ticket_messages`, `banners`, `newsletter_subscribers`
 - **System**: `audit_logs` (append-only), `system_settings`
 

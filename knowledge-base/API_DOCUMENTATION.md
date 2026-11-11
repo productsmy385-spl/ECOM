@@ -97,7 +97,24 @@ Rate limits are per IP and in memory (see SECURITY.md).
 | `GET/PUT/DELETE /api/designs/:id` | 60/min | PUT body `{ config, variantId?, name?, baseVersion }`, 409 if stale or locked. DELETE only for editable designs. |
 | `POST /api/designs/:id/submit` · `/duplicate` | 20/min | Submit enforces required options |
 | `GET /api/uploads/design-auth` | 20/min | ImageKit signature (10 min, folder `/customer-designs`), or 503 if not configured |
-| `/api/auth/*` | per-route | Customer auth |
+| `GET /api/cart?shipping=standard\|express` | 60/min | The shopper's bag, re-priced live: lines (each with an `issue`, if any), `pricing` (subtotal, discount, shipping, GST included, total, free-shipping gap), coupon state, `canCheckout`. |
+| `POST /api/cart/items` | 40/min | `{ variantId, quantity (1–10), designId? }`. Sets the guest cookie if needed. Identical lines merge. 409 if out of stock, or when a product needs a design that isn't finished. |
+| `PATCH/DELETE /api/cart/items/:id` | 60/min | PATCH `{ quantity }`. Another shopper's line → 404. |
+| `POST/DELETE /api/cart/coupon` | **10/min** | `{ code }`. 422 with a reason when the code can't be used. The minimum order is reported in `couponError`. |
+| `POST /api/checkout` | 10/min | `{ idempotencyKey (uuid), email? (guests), savedAddressId \| address, saveAddress?, shippingMethod, paymentMethod: razorpay\|cod, note? }` → 201 `{ orderId, orderNumber, status, total, orderToken? (guests, once), payment? }`. Everything is re-priced and re-checked server-side in one transaction. Repeating a key returns the same order. |
+| `POST /api/orders/:id/pay` | 10/min | Starts or restarts a Razorpay payment for an unpaid order. Needs the customer session or `{ orderToken }`. |
+| `POST /api/orders/:id/verify` | 20/min | `{ razorpayOrderId, razorpayPaymentId, razorpaySignature, orderToken? }`. The HMAC signature is checked, then the payment is re-fetched from Razorpay (and captured if only authorized) before the order is marked paid. Idempotent. |
+| `POST /api/webhooks/razorpay` | none | HMAC of the raw body (`X-Razorpay-Signature`, `RAZORPAY_WEBHOOK_SECRET`). Each event is stored once (`payment_events`) and processed idempotently. Returns 5xx so Razorpay retries. |
+| `POST /api/webhooks/clerk` | none | See Auth above. |
 | `GET /api/health` | none | |
 
-Storefront pages read through `@ecom/services` (`searchCatalog`, `getProductBySlug`, `getHomeData`) and only ever show published products in active categories. Cart and order endpoints arrive in Phases 5–6.
+Pages: `/cart`, `/checkout`, `/orders/:number` (customer session, or `?t=` guest token; anything else is a 404), and `/account/orders`.
+
+Storefront pages read through `@ecom/services` and only ever show published products in active categories.
+
+### Admin additions (Phase 6)
+| Method & path | Permission | Notes |
+|---|---|---|
+| `GET /coupons?q=&status=&page=` · `POST /coupons` | `marketing.manage` | Body: `code, type (percent\|fixed\|free_shipping), value (bps or paise), minOrderAmount, maxDiscountAmount?, startsAt?, endsAt?, usageLimit?, perCustomerLimit, isActive`. Audited. |
+| `PATCH /coupons/:id` | `marketing.manage` | A used code can't be renamed. |
+| `GET/PUT /settings/checkout` | `settings.manage` | Guest checkout, COD and its limit, shipping fees and day ranges, payment hold minutes. Audited. |

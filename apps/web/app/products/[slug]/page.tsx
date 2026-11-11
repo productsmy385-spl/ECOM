@@ -80,7 +80,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
           <span className="text-foreground">{product.name}</span>
         </nav>
 
-        <ProductView product={product} initialSku={v} customizable={customizer !== null} />
+        <ProductView product={product} initialSku={v} customizable={customizer !== null} requiresDesign={!!customizer?.options.some((o) => o.isRequired)} />
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-10">

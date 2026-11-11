@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  pgSequence,
   pgTable,
   text,
   uniqueIndex,
@@ -141,6 +142,9 @@ export const couponRedemptions = pgTable(
 
 // ---------------------------------------------------------------- orders
 
+/** Order numbers: ORD-<year>-<seq>. A sequence never hands out the same value twice, even under concurrency. */
+export const orderNumberSeq = pgSequence("order_number_seq", { startWith: 1001, increment: 1 });
+
 export const orders = pgTable(
   "orders",
   {
@@ -151,6 +155,11 @@ export const orders = pgTable(
     customerId: uuid("customer_id").references(() => users.id, { onDelete: "set null" }),
     guestEmail: text("guest_email"),
     guestPhone: varchar("guest_phone", { length: 20 }),
+    /**
+     * SHA-256 of the random token in a guest's order link (the token itself is
+     * never stored). Lets guests view their order without an account.
+     */
+    guestAccessHash: varchar("guest_access_hash", { length: 64 }),
     status: orderStatus("status").notNull().default("pending"),
     paymentStatus: paymentStatus("payment_status").notNull().default("created"),
     paymentProvider: paymentProvider("payment_provider").notNull(),

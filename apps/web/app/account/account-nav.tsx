@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, LayoutGrid, LogOut, MapPin, Palette, UserRound } from "lucide-react";
+import { Heart, LayoutGrid, LogOut, MapPin, Package, Palette, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/account", label: "Overview", icon: LayoutGrid },
+  { href: "/account/orders", label: "Orders", icon: Package },
   { href: "/account/profile", label: "Profile & security", icon: UserRound },
   { href: "/account/addresses", label: "Addresses", icon: MapPin },
   { href: "/account/wishlist", label: "Wishlist", icon: Heart },

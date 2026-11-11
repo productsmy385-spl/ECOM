@@ -9,6 +9,7 @@ import { Price } from "@/components/price";
 import { ProductImage } from "@/components/product-image";
 import { RatingPill } from "@/components/rating";
 import { WishlistButton } from "@/components/wishlist";
+import { AddToCart } from "@/components/add-to-cart";
 import { cn } from "@/lib/utils";
 
 type Variant = ProductDetail["variants"][number];
@@ -28,7 +29,7 @@ function deliveryWindow(days: [number, number]) {
   return `${fmt(days[0])} – ${fmt(days[1])}`;
 }
 
-export function ProductView({ product, initialSku, customizable }: { product: ProductDetail; initialSku?: string; customizable: boolean }) {
+export function ProductView({ product, initialSku, customizable, requiresDesign = false }: { product: ProductDetail; initialSku?: string; customizable: boolean; requiresDesign?: boolean }) {
   const start = product.variants.find((v) => v.sku === initialSku) ?? product.variants.find((v) => v.isDefault) ?? product.variants[0]!;
   const [variant, setVariant] = useState<Variant>(start);
   const [imageIndex, setImageIndex] = useState(0);
@@ -209,6 +210,8 @@ export function ProductView({ product, initialSku, customizable }: { product: Pr
             </Link>
           </div>
         )}
+
+        {!requiresDesign && <AddToCart key={variant.id} variantId={variant.id} disabled={variant.availability === "out_of_stock"} />}
 
         <WishlistButton productId={product.id} name={product.name} variant="full" className="self-start" />
 

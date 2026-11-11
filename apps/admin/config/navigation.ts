@@ -1,6 +1,6 @@
 import type { Permission } from "@ecom/rbac";
 import type { LucideIcon } from "lucide-react";
-import { FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, ShieldCheck, Tags, Users } from "lucide-react";
+import { FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, Tags, TicketPercent, Users } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -41,12 +41,17 @@ export const navigation: NavGroup[] = [
     items: [{ title: "Designs", href: "/designs", icon: Palette, anyOf: ["designs.view", "designs.view_assigned"] }],
   },
   {
+    label: "Marketing",
+    items: [{ title: "Coupons", href: "/coupons", icon: TicketPercent, anyOf: ["marketing.manage"] }],
+  },
+  {
     label: "Administration",
     items: [
       { title: "Staff", href: "/staff", icon: Users, anyOf: ["staff.view"] },
       { title: "Roles", href: "/roles", icon: ShieldCheck, anyOf: ["roles.manage", "permissions.manage", "staff.view"] },
       { title: "Permissions", href: "/permissions", icon: KeyRound, anyOf: ["permissions.manage", "roles.manage"] },
       { title: "Audit Logs", href: "/audit-logs", icon: ScrollText, anyOf: ["audit_logs.view"] },
+      { title: "Checkout settings", href: "/settings/checkout", icon: Settings, anyOf: ["settings.manage"] },
     ],
   },
 ];

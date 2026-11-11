@@ -6,6 +6,7 @@ import { CheckCircle2 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddToCart } from "@/components/add-to-cart";
 import { ProductImage } from "@/components/product-image";
 import { resolveDesignOwner } from "@/lib/design-owner";
 import { CUSTOMER_STATUS } from "../status";
@@ -91,6 +92,14 @@ export default async function DesignPage({ params, searchParams }: { params: Pro
           </dl>
           {Object.keys(d.missing).length > 0 && d.canEdit && (
             <p className="text-sm text-warning">Still to choose: {Object.values(d.missing).map((m) => m.replace(/ is required$/, "")).join(", ")}</p>
+          )}
+          {["submitted", "in_review", "approved"].includes(d.status) && d.variant && (
+            <div className="space-y-1.5">
+              <AddToCart variantId={d.variant.id} designId={d.id} disabled={!d.variant.inStock} />
+              {d.status !== "approved" && (
+                <p className="text-xs text-muted-foreground">You can order now. Our designers check it before production, and we&apos;ll contact you if anything needs changing.</p>
+              )}
+            </div>
           )}
           <DesignActions id={d.id} productId={d.product.id} canEdit={d.canEdit} status={d.status} />
         </div>

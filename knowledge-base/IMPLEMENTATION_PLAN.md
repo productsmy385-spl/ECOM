@@ -73,8 +73,16 @@ Authentication moved from Better Auth to Clerk at the user's request (OPEN_QUEST
 - ✅ 94 tests (auth identity tests rewritten). Smoke test (34 checks) uses Clerk Bearer session tokens. Browser end-to-end (23/24, the one miss a test-timing artefact): staff sign-in, invite, accept, forbidden, deactivate, no-access, customer sign-in and sign-out, mobile.
 - Phase 5 notes below that mention passwords, email codes or "devices" describe the Better Auth version. Those features are now Clerk's.
 
-## Phase 6: Cart and checkout ⬜
-Cart (guest and user, merge on login). Coupons. GST and shipping. Razorpay order, signature check, webhook and idempotency. COD flag. Transactional order creation with stock reservation. Redis and BullMQ.
+## Phase 6: Cart and checkout ✅ (2026-11-11)
+- ✅ **Bag.** Guests and customers, merged on sign-in. Lines are re-priced live, with stock checks and per-line issues. Finished designs can be added, priced with their options. Products with required options need a design. Header count.
+- ✅ **Pricing.** One pure function, `priceOrder` in `@ecom/validation`, is shared by the bag, checkout and the order: GST-inclusive with tax extracted per line, discount split proportionally, free standard shipping threshold, express fee.
+- ✅ **Coupons.** Percent (with cap), fixed or free shipping; minimum order, dates, total and per-customer limits. Re-checked under a row lock at order time. Admin **Coupons** page.
+- ✅ **Checkout.** Guest (email) or customer (saved or new address), standard or express, Razorpay or COD. One transaction does everything: re-price, reserve stock (it can't oversell), redeem the coupon, snapshot items and address, record history and the payment row, clear the bag. Idempotency key. Order numbers `ORD-YYYY-NNNNNN` from a sequence.
+- ✅ **Razorpay** over REST: order creation, Checkout.js, HMAC signature check plus a payment re-fetch and capture, a signature-verified idempotent webhook, and "Pay now" retry. **Inactive until keys are set.** Unpaid orders are cancelled after the hold and their stock and coupon use released; Razorpay is asked first, in case a payment was missed.
+- ✅ **Order page.** Customer session or guest secret link, with progress, totals and address. Account → Orders.
+- ✅ **Admin Checkout settings.** Guest checkout, COD and its limit, shipping fees and days, payment hold.
+- ✅ **Tests.** 8 pricing unit tests and 13 checkout integration tests (ownership, design rules, coupons, merge, idempotency, a concurrent last-unit race with exactly one winner, signature forgery, webhook dedupe, hold release, late-payment recovery). Browser end-to-end 17/17: admin settings and coupon, guest bag → coupon → checkout → COD order, token-only access, sign-in merge, saved address, My orders, mobile.
+- 🟡 **Not done.** BullMQ and Redis: the hold sweep runs in-process instead (OPEN_QUESTIONS #14). Live Razorpay end to end is untested until keys exist; only the fake gateway was used. Order confirmation emails depend on Resend and arrive in Phase 7 with order management.
 
 ## Phase 7: Admin operations ⬜
 Orders (lifecycle, history, notes, invoices, packing slips). Customers. Payments and refunds. Inventory (ledger, suppliers, purchases). Dashboard charts and date filters.

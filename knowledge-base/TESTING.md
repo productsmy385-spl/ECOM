@@ -18,6 +18,17 @@
 - **Browser flows** use `@clerk/testing/playwright` (`clerkSetup` plus `setupClerkTestingToken`) to bypass bot protection. Use `…+clerk_test@example.com` addresses; their verification code is always **424242**. Clerk asks for that code on a new device (`#/client-trust`).
 - On localhost both apps share Clerk's cookies (same host, different ports), so one browser context is signed in to both. On Railway they are separate domains.
 
+## Phase 6 results (2026-11-11) `[fact]`
+- `pnpm test`: **115/115 passed**. New: 8 pricing unit tests and 13 checkout integration tests. Razorpay is exercised through a fake `PaymentGateway` that uses real HMAC signatures, so no keys or network are needed.
+- Browser end-to-end against dev servers and the Clerk dev instance: **17/17 passed**.
+  - **Admin:** checkout settings (COD on); coupon created and listed.
+  - **Guest:** PDP quantity 2 updates the header bag count; an invalid code shows an error; a 10% code takes ₹119.80 off ₹1,198; missing checkout fields are flagged; express adds ₹149; COD order placed lands on the private order page; the bag is empty afterwards.
+  - **Order access:** the order page without its token is a 404; the token link works from any browser.
+  - **Customer:** signing in merges the guest bag; COD order; it appears in My orders; the saved address is preselected next time.
+  - **General:** no mobile overflow on bag or checkout; no page errors.
+- Bug found and fixed: after ordering, client navigation left the header's bag count stale, because the root layout isn't re-rendered. Checkout now does a full page load to the order page.
+- Lint, typecheck and `next build` (both apps): clean.
+
 ## Clerk migration results (2026-11-11) `[fact]`
 - `pnpm test`: **94/94 passed**.
 - `node scripts/smoke.mjs` (dev servers, temporary Clerk staff user): **34/34 passed**. Covers anonymous redirects and 401s, unsigned webhook refused, customer provisioned on first request, cross-origin 403, customer to `/admin/no-access` and 401, staff dashboard, IDOR 404, Clerk invitation sent, and the catalog lifecycle.

@@ -25,7 +25,13 @@
 ## Planned, by phase
 - **Phase 2**: audit log writes for all role, permission, staff and settings changes. Admin API route-handler guard.
 - **Phase 4**: customer design uploads, with stricter handling (moderation and per-customer folders).
-- **Phase 6**: Razorpay signature and webhook HMAC verification, idempotent event processing, server-side amount recalculation.
+- **Phase 6 (done 2026-11-11)** `[fact]`:
+  - **Amounts** are never taken from the client. The cart is re-priced from the catalogue inside the checkout transaction.
+  - **Payments:** the Razorpay signature is checked with HMAC-SHA256 and a timing-safe compare, then the payment is re-fetched from Razorpay, with order id and amount matched, before an order is marked paid. The webhook is checked by HMAC over the raw body. Events are stored once (unique provider + event id), and processing is idempotent and row-locked.
+  - **Overselling** is impossible: a guarded `reserved + q <= on_hand` update, plus the CHECK constraint. Variants are locked in sorted order, so concurrent checkouts can't deadlock.
+  - **Coupon limits** hold under concurrency (`FOR UPDATE` on the coupon row). The coupon endpoint is limited to 10/min per IP against guessing.
+  - **Guest orders** are only readable with their secret token; just its SHA-256 is stored. Without it, the order page and APIs answer 404.
+  - **Cart lines** and orders of other shoppers read as 404. All write endpoints are same-origin only.
 - **Before scale-out**: Redis-backed rate limiting.
 - **Under evaluation**: Postgres RLS for customer-owned tables. Needs `set_config('app.user_id', …, true)` inside each transaction so pooled connections never leak context. Backend checks stay mandatory regardless.
 - **Before launch**: a Content-Security-Policy (once the Razorpay/ImageKit/Maps origins are known).

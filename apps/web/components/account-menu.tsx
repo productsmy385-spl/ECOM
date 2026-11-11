@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Heart, LayoutGrid, LogOut, MapPin, Palette, UserRound } from "lucide-react";
+import { ChevronDown, Heart, LayoutGrid, LogOut, MapPin, Package, Palette, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -46,6 +46,7 @@ export function AccountMenu({ name }: { name: string | null }) {
       {open && (
         <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-border bg-card p-1.5 shadow-dropdown">
           <Link role="menuitem" href="/account" onClick={() => setOpen(false)} className={item}><LayoutGrid className="h-4 w-4" /> My account</Link>
+          <Link role="menuitem" href="/account/orders" onClick={() => setOpen(false)} className={item}><Package className="h-4 w-4" /> Orders</Link>
           <Link role="menuitem" href="/designs" onClick={() => setOpen(false)} className={item}><Palette className="h-4 w-4" /> My designs</Link>
           <Link role="menuitem" href="/account/wishlist" onClick={() => setOpen(false)} className={item}><Heart className="h-4 w-4" /> Wishlist</Link>
           <Link role="menuitem" href="/account/addresses" onClick={() => setOpen(false)} className={item}><MapPin className="h-4 w-4" /> Addresses</Link>

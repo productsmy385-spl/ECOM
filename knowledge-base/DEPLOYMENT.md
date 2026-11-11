@@ -45,6 +45,16 @@ node packages\db\dist\seed.mjs
 ```
 Alternatively, register an SSH key (`railway ssh keys add`) and run `railway ssh --service ECOM -- node db/seed.mjs` inside the container.
 
+## Payments go-live checklist (Razorpay)
+1. Set the keys on the storefront service. Use `--set`, not `--stdin`, in PowerShell:
+   `railway variables --service ECOM --set "RAZORPAY_KEY_ID=…" --set "RAZORPAY_KEY_SECRET=…" --set "RAZORPAY_WEBHOOK_SECRET=…"`.
+   The admin only checks whether the keys are present, so it can show "configured".
+2. In the Razorpay dashboard, add a webhook to `<WEB_URL>/api/webhooks/razorpay` for `payment.captured`, `order.paid` and `payment.failed`, using the same secret.
+3. Use test mode first: place an order, pay, and check the order becomes Confirmed. Then switch to live keys.
+
+## Admin URL behaviour
+The admin service only serves `/admin/*`. Any other path, including the bare domain, redirects into `/admin` (`apps/admin/next.config.ts`). Fixed 2026-11-11: the bare domain used to 404, and `/admin` returned 500.
+
 ## Rollback
 - **App**: redeploy the previous deployment in Railway (one click), or `git revert` and push.
 - **Infrastructure**: `git revert` the `.railway/railway.ts` change, then `railway config plan` / `apply`.
