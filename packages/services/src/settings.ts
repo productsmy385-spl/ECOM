@@ -62,3 +62,10 @@ export async function updateCheckoutSettings(ctx: ServiceContext, raw: unknown):
     return input;
   });
 }
+
+/** Seller details printed on invoices (store.gstin / store.address settings). */
+export async function getStoreProfile(conn: DbOrTx = db) {
+  const rows = await conn.select({ key: systemSettings.key, value: systemSettings.value }).from(systemSettings).where(inArray(systemSettings.key, ["store.gstin", "store.address"]));
+  const get = (k: string) => String(rows.find((r) => r.key === k)?.value ?? "").trim();
+  return { gstin: get("store.gstin"), address: get("store.address") };
+}

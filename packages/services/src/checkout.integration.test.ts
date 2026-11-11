@@ -85,6 +85,9 @@ function fakeGateway() {
       const p = paid.get(orderId);
       return p ? [await this.fetchPayment(p.id)] : [];
     },
+    async refundPayment(_id, _amount) {
+      return { id: `rfnd_${randomUUID().replace(/-/g, "").slice(0, 14)}`, status: "processed" };
+    },
     verifyPaymentSignature(orderId, paymentId, signature) {
       return createHmac("sha256", SECRET).update(`${orderId}|${paymentId}`).digest("hex") === signature;
     },

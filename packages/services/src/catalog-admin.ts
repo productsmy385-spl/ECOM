@@ -59,7 +59,7 @@ export async function listCategoriesAdmin(ctx: ServiceContext): Promise<AdminCat
       isFeatured: categories.isFeatured,
       isCustomizable: categories.isCustomizable,
       sortOrder: categories.sortOrder,
-      productCount: sql<number>`(select count(*)::int from ${products} p where p.category_id = ${categories.id} and p.deleted_at is null)`,
+      productCount: sql<number>`(select count(*)::int from ${products} p where p.category_id = "categories"."id" and p.deleted_at is null)`,
     })
     .from(categories)
     .where(isNull(categories.deletedAt))
@@ -181,7 +181,7 @@ export async function listBrandsAdmin(ctx: ServiceContext): Promise<AdminBrand[]
       logoUrl: brands.logoUrl,
       isActive: brands.isActive,
       isFeatured: brands.isFeatured,
-      productCount: sql<number>`(select count(*)::int from ${products} p where p.brand_id = ${brands.id} and p.deleted_at is null)`,
+      productCount: sql<number>`(select count(*)::int from ${products} p where p.brand_id = "brands"."id" and p.deleted_at is null)`,
     })
     .from(brands)
     .where(isNull(brands.deletedAt))
@@ -292,9 +292,9 @@ export async function listProductsAdmin(ctx: ServiceContext, raw: unknown): Prom
         isCustomizable: products.isCustomizable,
         updatedAt: products.updatedAt,
         imageUrl: sql<string | null>`(select url from ${productImages} i where i.product_id = ${products.id} order by i.sort_order limit 1)`,
-        variantCount: sql<number>`(select count(*)::int from ${productVariants} v where v.product_id = ${products.id} and v.deleted_at is null)`,
+        variantCount: sql<number>`(select count(*)::int from ${productVariants} v where v.product_id = "products"."id" and v.deleted_at is null)`,
         minPrice: sql<number | null>`(select min(price) from ${productVariants} v where v.product_id = ${products.id} and v.deleted_at is null and v.is_active)`,
-        stock: sql<number>`(select coalesce(sum(i.on_hand - i.reserved), 0)::int from ${inventory} i join ${productVariants} v on v.id = i.variant_id where v.product_id = ${products.id} and v.deleted_at is null)`,
+        stock: sql<number>`(select coalesce(sum(i.on_hand - i.reserved), 0)::int from ${inventory} i join ${productVariants} v on v.id = i.variant_id where v.product_id = "products"."id" and v.deleted_at is null)`,
       })
       .from(products)
       .innerJoin(categories, eq(categories.id, products.categoryId))

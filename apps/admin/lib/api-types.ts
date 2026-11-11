@@ -152,7 +152,8 @@ export const rupees = (paise: number | null | undefined) =>
     ? "—"
     : new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: paise % 100 ? 2 : 0 }).format(paise / 100);
 
-export const formatDateTime =(iso: string | null) =>
+/** Dates arrive as ISO strings over JSON; service types may say Date. Both work. */
+export const formatDateTime = (iso: string | Date | null) =>
   iso
     ? new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
     : "—";

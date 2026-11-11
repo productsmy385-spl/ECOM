@@ -84,8 +84,22 @@ Authentication moved from Better Auth to Clerk at the user's request (OPEN_QUEST
 - ✅ **Tests.** 8 pricing unit tests and 13 checkout integration tests (ownership, design rules, coupons, merge, idempotency, a concurrent last-unit race with exactly one winner, signature forgery, webhook dedupe, hold release, late-payment recovery). Browser end-to-end 17/17: admin settings and coupon, guest bag → coupon → checkout → COD order, token-only access, sign-in merge, saved address, My orders, mobile.
 - 🟡 **Not done.** BullMQ and Redis: the hold sweep runs in-process instead (OPEN_QUESTIONS #14). Live Razorpay end to end is untested until keys exist; only the fake gateway was used. Order confirmation emails depend on Resend and arrive in Phase 7 with order management.
 
-## Phase 7: Admin operations ⬜
-Orders (lifecycle, history, notes, invoices, packing slips). Customers. Payments and refunds. Inventory (ledger, suppliers, purchases). Dashboard charts and date filters.
+## Phase 7: Admin operations ✅ (2026-11-11)
+- ✅ **Orders.** List (search, status and method filters) and detail (items with design status, customer, address, payments, refunds, history, internal notes). Status moves follow `ORDER_TRANSITIONS`, with effects in the same transaction:
+  - shipping turns the reservation into fulfilment (stock leaves on-hand);
+  - cancelling needs a reason and releases unfulfilled stock and coupon use;
+  - delivery records cash on delivery as collected;
+  - a return restocks.
+
+  Design approval is required before production. Assignment to staff is available. `orders.view_assigned` sees assigned orders only (404 otherwise).
+- ✅ **Printables.** Invoice (GST shown per line, seller GSTIN and address from settings) and packing slip, both print or save as PDF.
+- ✅ **Payments and refunds.** Payments list. Refunds go through Razorpay for online orders and are recorded manually for COD. The amount is reserved under lock and rolled back if the gateway fails, and can never exceed what was captured. A full refund of a cancelled or returned order ends as Refunded.
+- ✅ **Customers.** List with orders and spend (staff never listed). Detail with orders and addresses. Suspend or reactivate also signs them out of Clerk.
+- ✅ **Inventory.** Stock list (lowest first, low-only filter), per-variant ledger, manual adjustment with a reason, low-stock threshold. Suppliers (GSTIN validated). Purchases: draft → ordered → received (adds stock through the ledger) or cancelled.
+- ✅ **Dashboard.** Needs-attention queue, a 30-day paid revenue chart (validated colours, hover tooltips, screen-reader table), top products and latest orders. Money figures are shown only with `reports.view` or `payments.view`.
+- ✅ **Fix.** Correlated sub-query counts were always 0, because Drizzle writes columns unqualified in single-table queries. This affected category, brand and variant product counts and the product list's stock. All are now table-qualified, with a regression test (KNOWN-ISSUES).
+- ✅ **Tests.** 123 passing (8 new operations tests). Browser/API check against a production build: 28/28.
+- 🟡 **Next.** Customer-facing invoice download and order emails (Phase 8, with Resend). Date-range filters on the dashboard (Phase 9 reports).
 
 ## Phase 8: Workspaces ⬜
 Designer, manager, staff and delivery captain workspaces (mobile-first, maps, proof upload). Notifications (in-app, email, FCM).

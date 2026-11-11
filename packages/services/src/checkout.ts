@@ -566,7 +566,7 @@ export async function listCustomerOrders(customerId: string) {
       paymentStatus: orders.paymentStatus,
       total: orders.totalAmount,
       placedAt: orders.placedAt,
-      itemCount: sql<number>`(select coalesce(sum(quantity), 0)::int from ${orderItems} where ${orderItems.orderId} = ${orders.id})`,
+      itemCount: sql<number>`(select coalesce(sum(quantity), 0)::int from ${orderItems} oi where oi.order_id = "orders"."id")`,
     })
     .from(orders)
     .where(eq(orders.customerId, customerId))

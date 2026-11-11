@@ -23,6 +23,8 @@ export interface PaymentGateway {
   fetchPayment(paymentId: string): Promise<GatewayPayment>;
   capturePayment(paymentId: string, amount: number): Promise<GatewayPayment>;
   listOrderPayments(razorpayOrderId: string): Promise<GatewayPayment[]>;
+  /** Refunds `amount` paise of a captured payment; returns Razorpay's refund id and status. */
+  refundPayment(paymentId: string, amount: number, notes: Record<string, string>): Promise<{ id: string; status: string }>;
   verifyPaymentSignature(razorpayOrderId: string, paymentId: string, signature: string): boolean;
 }
 
@@ -99,6 +101,10 @@ export function razorpayGateway(): PaymentGateway | null {
     async listOrderPayments(razorpayOrderId) {
       const r = await call(`/orders/${encodeURIComponent(razorpayOrderId)}/payments`);
       return ((r.items as Record<string, unknown>[]) ?? []).map(mapPayment);
+    },
+    async refundPayment(paymentId, amount, notes) {
+      const r = await call(`/payments/${encodeURIComponent(paymentId)}/refund`, { method: "POST", body: { amount, notes, speed: "normal" } });
+      return { id: String(r.id), status: String(r.status) };
     },
     verifyPaymentSignature(razorpayOrderId, paymentId, signature) {
       return safeEqualHex(hmacHex(secret, `${razorpayOrderId}|${paymentId}`), signature);
