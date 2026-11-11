@@ -1,6 +1,6 @@
 import type { Permission } from "@ecom/rbac";
 import type { LucideIcon } from "lucide-react";
-import { Boxes, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
+import { BarChart3, Boxes, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -29,6 +29,7 @@ export const navigation: NavGroup[] = [
     items: [
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, anyOf: ["dashboard.view"] },
       { title: "My work", href: "/workspace", icon: ClipboardList },
+      { title: "Reports", href: "/reports", icon: BarChart3, anyOf: ["reports.view"] },
     ],
   },
   {

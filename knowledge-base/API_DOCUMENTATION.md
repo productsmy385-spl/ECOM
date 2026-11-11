@@ -75,6 +75,12 @@ Money is in **paise** everywhere in the API. Prices are GST-inclusive.
 | `POST /designs/:id/notes` | `designs.update` or `designs.approve` | Internal note |
 | `GET /designers` | `designs.assign` | Eligible staff |
 
+### Reports (Phase 9)
+| Endpoint | Permission | Notes |
+|---|---|---|
+| `GET /reports/:key?from=YYYY-MM-DD&to=YYYY-MM-DD&format=json` | `reports.view` + the report's module permission | `key` ∈ sales, revenue, products, categories, customers, inventory, payments, refunds, deliveries, staff. Dates are in IST; the default is the last 30 days, the maximum 366 days. Money is in paise. |
+| `…&format=csv` · `…&format=xlsx` | also `reports.export` | File download; money in rupees. A printable PDF view is at `/admin/reports/:key/print`. |
+
 ### Auth (Clerk)
 There are no auth endpoints of our own. Sign-in, sign-up, password reset and sessions are Clerk's (hosted Frontend API; components on `/login`, `/register`, `/admin/login`, `/admin/accept-invite`). Our APIs accept the Clerk session cookie, or `Authorization: Bearer <Clerk session token>`, which is what the smoke test uses. `POST /api/webhooks/clerk` (storefront) receives Svix-signed `user.updated` and `user.deleted` events. See AUTHENTICATION.md.
 

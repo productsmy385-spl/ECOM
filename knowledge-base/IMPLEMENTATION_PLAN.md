@@ -118,8 +118,20 @@ Authentication moved from Better Auth to Clerk at the user's request (OPEN_QUEST
 - ✅ **Tests.** 126 passing (3 new delivery and notification tests). Production-build API and page check: 20/20 real checks (the 21st asserted a self-notification, which is correctly suppressed).
 - 🟡 **Not done.** FCM push: `push_tokens` exists but there are no Firebase keys. BullMQ queue: emails are sent inline after commit. Live map tracking.
 
-## Phase 9: Reports ⬜
-Sales, revenue, product, category, customer, inventory, payment, refund, delivery and staff reports. CSV, XLSX and PDF export, permission-gated.
+## Phase 9: Reports ✅ (2026-11-11)
+- ✅ **Ten reports** (`packages/services/src/reports.ts`): sales, revenue, products, categories, customers, inventory, payments, refunds, deliveries and staff.
+  - Each is one read-only SQL query over a date range in IST. The default range is the last 30 days; the maximum is 366 days and 5,000 rows.
+  - Sales count orders that are not pending, payment-pending or cancelled. Revenue counts money collected (captured payments, with COD counted on delivery) minus refunds processed.
+- ✅ **Access.**
+  - Every report needs `reports.view` plus the module permission that owns its data. An Inventory Manager, for example, sees only the inventory report.
+  - Exports also need `reports.export`.
+- ✅ **Exports.**
+  - CSV: UTF-8 with BOM, amounts in rupees, and spreadsheet-formula injection neutralised.
+  - XLSX: written in-house as a stored ZIP, with no new dependency.
+  - PDF: a printable view at `/reports/:key/print`.
+- ✅ **Admin pages.** `/reports` (only the reports you can open) and `/reports/:key` (date picker, presets, totals row, export buttons).
+- ✅ **API.** `GET /api/reports/:key?from&to&format=json|csv|xlsx`.
+- ✅ **Tests.** 7 integration tests.
 
 ## Phase 10: Hardening and release ⬜
 Playwright E2E. Load test. CSP. Redis rate limiting. Backup-restore drill. Railway production deploy. Clean ZIP.

@@ -1,6 +1,8 @@
 /**
- * Minimal transactional email sender (Resend REST API, no SDK dependency).
- * Without RESEND_API_KEY the message is logged instead — dev/test only.
+ * Optional transactional email (Resend REST API). The store does not use an
+ * email provider (OPEN_QUESTIONS #21): sign-in and staff-invite emails are
+ * Clerk's, and customers follow orders on the order page. Without
+ * RESEND_API_KEY messages are skipped (a short info line is logged).
  * Order emails are sent by services/src/notifications.ts after commits.
  */
 export interface EmailMessage {
@@ -13,11 +15,8 @@ export interface EmailMessage {
 export async function sendEmail(msg: EmailMessage): Promise<void> {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("[email] RESEND_API_KEY missing in production; email not sent:", msg.subject);
-    } else {
-      console.info(`[email:dev] to=${msg.to} subject="${msg.subject}"\n${msg.text ?? msg.html}`);
-    }
+    if (process.env.NODE_ENV === "production") console.info(`[email] skipped (no provider): "${msg.subject}"`);
+    else console.info(`[email:dev] to=${msg.to} subject="${msg.subject}"\n${msg.text ?? msg.html}`);
     return;
   }
   const res = await fetch("https://api.resend.com/emails", {
