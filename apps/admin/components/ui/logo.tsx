@@ -1,21 +1,17 @@
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
+import { AdiraMark } from "@ecom/ui/logo";
 
 interface LogoMarkProps {
   className?: string;
   showWordmark?: boolean;
 }
 
-/** Placeholder brand mark (monogram) until the real logo is supplied. */
+/** Adira mark (photo frame + A with a heart crossbar) with the "Admin" wordmark. */
 export function LogoMark({ className, showWordmark = true }: LogoMarkProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <span
-        aria-hidden="true"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary font-display text-base font-bold text-primary-foreground"
-      >
-        {siteConfig.brand.charAt(0)}
-      </span>
+      <AdiraMark size={36} className="shrink-0" />
       {showWordmark && (
         <div className="min-w-0">
           <p className="truncate font-display text-[15px] font-bold leading-none text-foreground">

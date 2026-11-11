@@ -1,4 +1,5 @@
 import { brand } from "@ecom/ui/brand";
+import { AdiraLogo } from "@ecom/ui/logo";
 import Link from "next/link";
 import { navCategories } from "@/lib/catalog";
 import { NewsletterForm } from "./newsletter-form";
@@ -24,8 +25,8 @@ export async function SiteFooter() {
 
       <div className="container-store grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
         <div>
-          <Link href="/" className="font-display text-2xl font-bold">
-            {brand.name}
+          <Link href="/" aria-label={`${brand.name} home`}>
+            <AdiraLogo size={40} name={brand.name} />
           </Link>
           <p className="mt-3 max-w-xs text-sm text-white/70">Custom photo frames and handmade resin art frames, designed by you.</p>
         </div>

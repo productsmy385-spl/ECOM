@@ -1,6 +1,6 @@
 /** Brand constants for places CSS tokens can't reach (emails, PDFs, meta theme-color). */
 export const brand = {
-  name: process.env.NEXT_PUBLIC_BRAND_NAME ?? "Crimsonne",
+  name: process.env.NEXT_PUBLIC_BRAND_NAME ?? "Adira",
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@example.com",
   colors: {
     black: "#000000",

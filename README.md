@@ -1,6 +1,6 @@
-# Crimsonne: custom-design e-commerce platform
+# Adira: custom-design e-commerce platform
 
-The storefront and admin dashboard for a single business selling custom-design photo frames and handmade resin (glue-art) frames, which customers design themselves. "Crimsonne" is a placeholder brand name, set through `NEXT_PUBLIC_BRAND_NAME`.
+The storefront and admin dashboard for a single business selling custom-design photo frames and handmade resin (glue-art) frames, which customers design themselves. The brand name, Adira, is set through `NEXT_PUBLIC_BRAND_NAME`. The logo lives in `packages/ui/src/logo.tsx`.
 
 **Stack:** Next.js 16 · React 19 · TypeScript · Tailwind v4 · PostgreSQL 17 + Drizzle · Clerk · pnpm workspaces · Railway.
 

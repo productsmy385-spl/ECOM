@@ -8,7 +8,8 @@
 | 3 | 2026-11-10 | Auth provider | ~~Better Auth on Postgres~~. **Superseded by 3a.** |
 | 3a | 2026-11-11 | Auth provider | **Clerk** for sign-in, sign-up and staff invitations (user's request, 2026-11-11). It supersedes #3. Our `users` table, RBAC and data isolation are unchanged; `users.clerk_user_id` links the two by verified email. Better Auth's tables were dropped (migration 0003). |
 | 4 | 2026-11-10 | Linear tracking | Skipped for now. Progress lives in IMPLEMENTATION_PLAN.md. |
-| 5 | 2026-11-10 | Brand name | Placeholder "Crimsonne" via `NEXT_PUBLIC_BRAND_NAME` |
+| 5 | 2026-11-10 | Brand name | ~~Placeholder "Crimsonne"~~. **Superseded by 5a.** |
+| 5a | 2026-11-11 | Brand name and logo | **Adira** (owner, 2026-11-11), set through `NEXT_PUBLIC_BRAND_NAME` (Railway IaC and `.env`). The logo is original: a crimson tile with a white photo-frame mat and a bold "A" whose crossbar is a light-pink heart (`packages/ui/src/logo.tsx`; favicons at `apps/*/app/icon.svg`). The wordmark is set in Sora. |
 | 6 | 2026-11-10 | Bookly credit | Omitted. Bookly is inspiration only, and no code or assets ship. |
 | 6a | 2026-11-11 | Storefront design | At the owner's request the storefront follows Bookly's **layout and motions**: info strip, centred nav, hero slider with side arrows, service icons, product carousels whose card actions rise on hover, offer banner, four list columns, category tiles, reviews carousel, full-screen search, page loader. All of it is re-implemented as original React/Tailwind code. **No Bookly CSS, HTML, JS or images are used.** Bookly's licence requires a TemplatesJungle footer link only when its template is used, and the owner declined any such credit. Colours (brand palette) and fonts (Sora + Inter) are unchanged. |
 | 7 | 2026-11-10 | DropX credit | ~~Kept, as the licence requires~~. **Superseded by 7a.** |
@@ -30,7 +31,7 @@
 ## Open
 | # | Question | Needed by |
 |---|---|---|
-| A | Real brand name and logo | Phase 3 |
+| A | ~~Real brand name and logo~~. Resolved by 5a (Adira). | – |
 | B | Real product and banner photography (the Bookly images are book-themed and unusable) | Phase 3 |
 | C | GST rate per category; shipping fees and thresholds; whether COD and guest checkout are on at launch. All are editable in **Admin → Checkout settings**. Defaults: guest checkout on, COD off, free shipping from ₹999, standard ₹49, express ₹149. | Go-live |
 | G | Is GST charged on the shipping fee, and at what rate? The invoice layout needs this. | Phase 7 |

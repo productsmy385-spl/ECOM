@@ -1,6 +1,6 @@
 export const siteConfig = {
-  name: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? "Crimsonne"} Admin`,
-  brand: process.env.NEXT_PUBLIC_BRAND_NAME ?? "Crimsonne",
+  name: `${process.env.NEXT_PUBLIC_BRAND_NAME ?? "Adira"} Admin`,
+  brand: process.env.NEXT_PUBLIC_BRAND_NAME ?? "Adira",
   description: "Store administration: catalog, orders, designs, deliveries and reports.",
   /**
    * Footer credit. Replaced the DataDropX credit on 2026-11-11 at the owner's

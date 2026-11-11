@@ -1,4 +1,5 @@
 import { brand } from "@ecom/ui/brand";
+import { AdiraLogo } from "@ecom/ui/logo";
 import { formatPaise } from "@ecom/ui/format";
 import { cartCount } from "@ecom/services";
 import { ChevronDown } from "lucide-react";
@@ -15,11 +16,8 @@ import { WishlistHeaderLink } from "./wishlist";
 
 export function Logo() {
   return (
-    <Link href="/" className="flex shrink-0 items-center gap-2" aria-label={`${brand.name} home`}>
-      <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary font-display text-lg font-bold text-primary-foreground">
-        {brand.name.charAt(0)}
-      </span>
-      <span className="font-display text-xl font-bold tracking-tight">{brand.name}</span>
+    <Link href="/" className="flex shrink-0 items-center" aria-label={`${brand.name} home`}>
+      <AdiraLogo size={38} name={brand.name} />
     </Link>
   );
 }

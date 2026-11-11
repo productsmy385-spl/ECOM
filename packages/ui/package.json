@@ -9,7 +9,8 @@
     "./format": "./src/format.ts",
     "./design": "./src/design/renderer.tsx",
     "./design-fonts": "./src/design/fonts.ts",
-    "./clerk-appearance": "./src/clerk-appearance.ts"
+    "./clerk-appearance": "./src/clerk-appearance.ts",
+    "./logo": "./src/logo.tsx"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

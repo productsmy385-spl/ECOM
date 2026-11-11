@@ -31,9 +31,9 @@ const shared = {
   WEB_URL: "https://${{ECOM.RAILWAY_PUBLIC_DOMAIN}}",
   ADMIN_URL: "https://${{admin.RAILWAY_PUBLIC_DOMAIN}}",
   // Inlined at build time (declared as Docker build args).
-  NEXT_PUBLIC_BRAND_NAME: "Crimsonne",
+  NEXT_PUBLIC_BRAND_NAME: "Adira",
   NEXT_PUBLIC_SUPPORT_EMAIL: "support@example.com",
-  EMAIL_FROM: "Crimsonne <no-reply@example.com>",
+  EMAIL_FROM: "Adira <no-reply@example.com>",
 };
 
 export default defineRailway(() => {
