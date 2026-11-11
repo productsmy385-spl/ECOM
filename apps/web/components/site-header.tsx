@@ -1,18 +1,17 @@
 import { brand } from "@ecom/ui/brand";
 import { formatPaise } from "@ecom/ui/format";
+import { cartCount } from "@ecom/services";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { Suspense } from "react";
 import { navCategories } from "@/lib/catalog";
-import { getStoreSettings } from "@/lib/settings";
 import { getCustomer } from "@/lib/customer";
 import { resolveShopper } from "@/lib/design-owner";
-import { cartCount } from "@ecom/services";
-import { CartHeaderLink } from "./add-to-cart";
+import { getStoreSettings } from "@/lib/settings";
 import { AccountMenu } from "./account-menu";
+import { CartHeaderLink } from "./add-to-cart";
 import { MobileNav } from "./mobile-nav";
+import { SearchOverlay } from "./search-overlay";
 import { WishlistHeaderLink } from "./wishlist";
-import { SearchBox } from "./search-box";
 
 export function Logo() {
   return (
@@ -25,77 +24,108 @@ export function Logo() {
   );
 }
 
+const navLink = "inline-flex items-center gap-1 py-2 text-[0.8rem] font-semibold uppercase tracking-[0.09em] text-foreground transition-colors duration-300 hover:text-primary";
+
 export async function SiteHeader() {
   const [cats, settings, customer, shopper] = await Promise.all([navCategories(), getStoreSettings(), getCustomer(), resolveShopper({ create: false })]);
   const bagCount = shopper ? await cartCount(shopper) : 0;
+  const support = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
-      {/* Announcement bar: the offer is read from store settings, not hard-coded. */}
-      <div className="bg-ink text-white">
-        <p className="container-store py-2 text-center text-xs font-medium">
-          Free shipping on orders above {formatPaise(settings.freeShippingAbove, { whole: true })} ·{" "}
-          <Link href="/shop?tag=custom" className="text-hotpink underline-offset-2 hover:underline">
-            Design your own
-          </Link>
-        </p>
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+      {/* Info strip: three short messages, all from store settings. */}
+      <div className="hidden border-b border-border md:block">
+        <div className="grid grid-cols-3 text-center text-xs text-foreground/80">
+          <p className="py-2">
+            Need any help?{" "}
+            {support ? (
+              <a href={`mailto:${support}`} className="font-medium text-primary hover:underline">
+                {support}
+              </a>
+            ) : (
+              <Link href="/contact" className="font-medium text-primary hover:underline">
+                Contact us
+              </Link>
+            )}
+          </p>
+          <p className="border-x border-border py-2">
+            Free shipping on orders above {formatPaise(settings.freeShippingAbove, { whole: true })}.{" "}
+            <Link href="/shop" className="font-medium underline underline-offset-2 hover:text-primary">
+              Shop now
+            </Link>
+          </p>
+          <p className="py-2">
+            Delivery in {settings.standardDays[0]}–{settings.standardDays[1]} business days · Prices include GST
+          </p>
+        </div>
       </div>
 
       <div className="border-b border-border">
-        <div className="container-store flex h-16 items-center gap-3 lg:h-[72px] lg:gap-8">
-          <MobileNav categories={cats} brand={brand.name} />
+        <div className="container-store flex h-16 items-center gap-4 lg:h-20">
           <Logo />
-          <Suspense fallback={<div className="hidden h-11 flex-1 rounded-full bg-muted md:block" />}>
-            <SearchBox className="hidden flex-1 md:block lg:max-w-2xl" />
-          </Suspense>
-          <div className="ml-auto flex items-center gap-1">
+
+          <nav aria-label="Main" className="mx-auto hidden lg:block">
+            <ul className="flex items-center gap-7 xl:gap-9">
+              <li>
+                <Link href="/" className={navLink}>
+                  Home
+                </Link>
+              </li>
+              <li className="group relative">
+                <Link href="/shop" className={navLink} aria-haspopup="true">
+                  Shop <ChevronDown className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180" aria-hidden="true" />
+                </Link>
+                {cats.length > 0 && (
+                  <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-200 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+                    <ul className="grid w-max min-w-64 max-w-[42rem] grid-cols-2 gap-x-2 rounded-2xl border border-border bg-card p-3 shadow-dropdown group-hover:animate-rise">
+                      <li className="col-span-2">
+                        <Link href="/shop" className="block rounded-lg px-3 py-2 text-sm font-semibold hover:bg-muted hover:text-primary">
+                          Shop all
+                        </Link>
+                      </li>
+                      {cats.map((c) => (
+                        <li key={c.id}>
+                          <Link href={`/shop?category=${c.slug}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-muted hover:text-primary">
+                            {c.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </li>
+              <li>
+                <Link href="/shop?tag=new" className={navLink}>
+                  New arrivals
+                </Link>
+              </li>
+              <li>
+                <Link href="/shop?tag=custom" className={`${navLink} text-primary`}>
+                  Design your own
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className={navLink}>
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className={navLink}>
+                  Contact
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="ml-auto flex items-center gap-0.5 lg:ml-0">
+            <SearchOverlay categories={cats.map((c) => ({ slug: c.slug, name: c.name }))} />
             <AccountMenu name={customer?.name ?? null} />
             <WishlistHeaderLink />
             <CartHeaderLink count={bagCount} />
+            <MobileNav categories={cats} brand={brand.name} />
           </div>
         </div>
-        <div className="container-store pb-3 md:hidden">
-          <Suspense fallback={<div className="h-11 rounded-full bg-muted" />}>
-            <SearchBox />
-          </Suspense>
-        </div>
       </div>
-
-      <nav aria-label="Categories" className="hidden border-b border-border lg:block">
-        {/* Labels never wrap; if categories outgrow the width the bar scrolls instead. */}
-        <ul className="container-store flex items-center gap-0.5 whitespace-nowrap text-sm xl:gap-1 [&>li]:shrink-0">
-          {/* (dropdowns are absolutely positioned, so they are not clipped by the bar) */}
-          <li>
-            <Link href="/shop" className="block px-3 py-3 font-medium hover:text-primary">
-              Shop all
-            </Link>
-          </li>
-          {cats.map((c) => (
-            <li key={c.id} className="group relative">
-              <Link href={`/shop?category=${c.slug}`} className="flex items-center gap-1 px-3 py-3 hover:text-primary">
-                {c.name}
-                {c.children.length > 0 && <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:rotate-180" aria-hidden="true" />}
-              </Link>
-              {c.children.length > 0 && (
-                <ul className="invisible absolute left-0 top-full z-50 min-w-52 rounded-xl border border-border bg-card p-1.5 opacity-0 shadow-dropdown transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
-                  {c.children.map((ch) => (
-                    <li key={ch.id}>
-                      <Link href={`/shop?category=${ch.slug}`} className="block rounded-lg px-3 py-2 hover:bg-muted">
-                        {ch.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-          <li className="ml-auto">
-            <Link href="/shop?tag=new" className="block px-3 py-3 font-medium text-primary hover:underline">
-              New arrivals
-            </Link>
-          </li>
-        </ul>
-      </nav>
     </header>
   );
 }

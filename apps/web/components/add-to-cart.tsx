@@ -52,7 +52,7 @@ export function AddToCart({
     <div className={cn("space-y-2", className)}>
       <div className="flex flex-col gap-3 sm:flex-row">
         {withQuantity && !disabled && (
-          <div className="flex h-11 w-full items-center justify-between rounded-lg border border-input sm:w-auto" role="group" aria-label="Quantity">
+          <div className="flex h-12 w-full items-center justify-between rounded-full border border-input px-1 sm:w-auto" role="group" aria-label="Quantity">
             <button type="button" className={step} onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Decrease quantity">
               <Minus className="h-4 w-4" />
             </button>
@@ -68,7 +68,7 @@ export function AddToCart({
           type="button"
           onClick={add}
           disabled={disabled || state === "busy"}
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-ink px-6 text-sm font-semibold text-white hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-1"
+          className="btn-pill h-12 w-full sm:flex-1"
         >
           {state === "busy" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ShoppingBag className="h-4 w-4" aria-hidden="true" />}
           {disabled ? disabledLabel : "Add to bag"}

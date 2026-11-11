@@ -10,7 +10,9 @@
 | 4 | 2026-11-10 | Linear tracking | Skipped for now. Progress lives in IMPLEMENTATION_PLAN.md. |
 | 5 | 2026-11-10 | Brand name | Placeholder "Crimsonne" via `NEXT_PUBLIC_BRAND_NAME` |
 | 6 | 2026-11-10 | Bookly credit | Omitted. Bookly is inspiration only, and no code or assets ship. |
-| 7 | 2026-11-10 | DropX credit | **Kept**, as the licence requires: admin footer and login footer |
+| 6a | 2026-11-11 | Storefront design | At the owner's request the storefront follows Bookly's **layout and motions**: info strip, centred nav, hero slider with side arrows, service icons, product carousels whose card actions rise on hover, offer banner, four list columns, category tiles, reviews carousel, full-screen search, page loader. All of it is re-implemented as original React/Tailwind code. **No Bookly CSS, HTML, JS or images are used.** Bookly's licence requires a TemplatesJungle footer link only when its template is used, and the owner declined any such credit. Colours (brand palette) and fonts (Sora + Inter) are unchanged. |
+| 7 | 2026-11-10 | DropX credit | ~~Kept, as the licence requires~~. **Superseded by 7a.** |
+| 7a | 2026-11-11 | DropX credit | **Removed at the owner's explicit request** (2026-11-11), after being told the DropX Admin licence requires it. Admin and storefront footers now say "Designed by Kranas Tech". Licence compliance for the DropX-based admin is the owner's responsibility, e.g. buying a no-attribution licence from DataDropX. |
 | 8 | 2026-11-10 | Master prompt truncated after §19 | Proceeding on the assumption that §20+ match the first prompt (entity list, security, docs, phases, deliverables) `[assumption]` |
 | 9 | 2026-11-10 | Admin URL shape | Separate Next app with `basePath: "/admin"`, so routes match the spec |
 | 10 | 2026-11-10 | Money representation | Integer paise. Prices are GST-inclusive. |

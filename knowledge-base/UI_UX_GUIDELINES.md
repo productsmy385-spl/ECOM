@@ -39,4 +39,13 @@ Dark mode is class-based (`next-themes`) in admin. The storefront is light-only 
 - Motion is limited to `animate-fade-in*`, 150–350 ms, and respects `prefers-reduced-motion`.
 
 ## Template attribution (licence)
-The admin footer and admin login footer must keep **"Designed & developed by DataDropX"** with a link to https://datadropx.net. This is required by the DropX licence.
+Both footers say **"Designed by Kranas Tech"** (owner's decision, OPEN_QUESTIONS #7a, which replaced the DataDropX credit).
+
+**Storefront look (from 2026-11-11, #6a).** Bookly-style layout and motions in our palette and fonts. Reuse the shared pieces rather than inventing new ones:
+- `btn-pill` / `btn-pill-dark` / `btn-pill-light`: crimson pills that turn black on hover.
+- `components/carousel.tsx`: 500 ms slides, round side arrows; 2 / 3 / 4 / 5 cards per view.
+- `components/reveal.tsx`: sections lift in once on scroll.
+- `.card-actions`: product card buttons rise on hover; always visible on touch screens.
+- `components/search-overlay.tsx`, `components/preloader.tsx` (first page of a session only), `animate-rise` for dropdowns.
+
+All motion respects `prefers-reduced-motion`. Never add made-up countdowns: the offer countdown only shows for a promo banner with a real `ends_at`.

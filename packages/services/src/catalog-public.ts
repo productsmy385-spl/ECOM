@@ -25,6 +25,8 @@ export interface ProductCard {
   isCustomizable: boolean;
   isNew: boolean;
   colors: string[];
+  /** Variant a card can add to the bag directly: set only for single-variant products that need no design. */
+  quickAddVariantId: string | null;
 }
 
 type Row = Record<string, unknown>;
@@ -37,7 +39,9 @@ const VARIANT_AGG = sql`
          min(pv.price)::int as min_price,
          (array_agg(pv.compare_at_price order by pv.price asc, pv.sort_order asc))[1] as compare_at,
          bool_or(coalesce(i.on_hand - i.reserved, 0) > 0) as in_stock,
-         coalesce(array_agg(distinct pv.color_hex) filter (where pv.color_hex is not null), '{}') as colors
+         coalesce(array_agg(distinct pv.color_hex) filter (where pv.color_hex is not null), '{}') as colors,
+         (array_agg(pv.id order by pv.is_default desc, pv.price asc))[1] as first_variant_id,
+         count(*)::int as variant_count
     from product_variants pv
     left join inventory i on i.variant_id = pv.id
    where pv.is_active and pv.deleted_at is null
@@ -46,7 +50,8 @@ const VARIANT_AGG = sql`
 const CARD_SELECT = sql`
   p.id, p.slug, p.name, b.name as brand_name, c.name as category_name,
   p.rating_avg, p.rating_count, p.sold_count, p.published_at, p.is_customizable,
-  v.min_price, v.compare_at, v.in_stock, v.colors,
+  v.min_price, v.compare_at, v.in_stock, v.colors, v.first_variant_id, v.variant_count,
+  exists (select 1 from customization_options co where co.product_id = p.id and co.is_active and co.is_required) as requires_design,
   (select url from product_images pi where pi.product_id = p.id order by pi.sort_order limit 1) as image_url`;
 
 const BASE_FROM = sql`
@@ -73,6 +78,7 @@ function toCard(r: Row): ProductCard {
     isCustomizable: Boolean(r.is_customizable),
     isNew: !!publishedAt && Date.now() - publishedAt.getTime() < NEW_DAYS * 86_400_000,
     colors: ((r.colors as string[]) ?? []).slice(0, 5),
+    quickAddVariantId: Number(r.variant_count) === 1 && !r.requires_design ? (r.first_variant_id as string) : null,
   };
 }
 
@@ -253,13 +259,15 @@ export async function listNavCategories(): Promise<NavCategory[]> {
 }
 
 export interface HomeData {
-  heroBanners: { id: string; title: string; subtitle: string | null; ctaLabel: string | null; ctaHref: string | null; imageUrl: string | null; mobileImageUrl: string | null }[];
+  heroBanners: { id: string; title: string; subtitle: string | null; ctaLabel: string | null; ctaHref: string | null; imageUrl: string | null; mobileImageUrl: string | null; endsAt: Date | null }[];
   promoBanners: HomeData["heroBanners"];
   categories: NavCategory[];
   trending: ProductCard[];
   bestSellers: ProductCard[];
   newArrivals: ProductCard[];
   customizable: ProductCard[];
+  /** Items whose price is below MRP. */
+  onSale: ProductCard[];
   brands: { slug: string; name: string; logoUrl: string | null }[];
   reviews: { id: string; rating: number; title: string | null; body: string | null; author: string; productName: string; productSlug: string }[];
 }
@@ -276,6 +284,7 @@ export async function getHomeData(): Promise<HomeData> {
         ctaHref: banners.ctaHref,
         imageUrl: banners.imageUrl,
         mobileImageUrl: banners.mobileImageUrl,
+        endsAt: banners.endsAt,
       })
       .from(banners)
       .where(
@@ -289,7 +298,7 @@ export async function getHomeData(): Promise<HomeData> {
       .orderBy(asc(banners.sortOrder))
       .limit(placement === "hero" ? 5 : 2);
 
-  const [hero, promo, cats, trending, bestSellers, newArrivals, customizable, brandRows, reviewRows] = await Promise.all([
+  const [hero, promo, cats, trending, bestSellers, newArrivals, customizable, onSale, brandRows, reviewRows] = await Promise.all([
     activeBanner("hero"),
     activeBanner("promo"),
     listNavCategories(),
@@ -298,6 +307,7 @@ export async function getHomeData(): Promise<HomeData> {
     rail(sql`p.sold_count desc`, sql`and p.sold_count > 0`),
     rail(sql`p.published_at desc nulls last`),
     rail(sql`p.sold_count desc, p.published_at desc`, sql`and p.is_customizable`),
+    rail(sql`(v.compare_at - v.min_price)::float / nullif(v.compare_at, 0) desc`, sql`and v.compare_at > v.min_price`, 6),
     db
       .select({ slug: brands.slug, name: brands.name, logoUrl: brands.logoUrl })
       .from(brands)
@@ -320,6 +330,7 @@ export async function getHomeData(): Promise<HomeData> {
     bestSellers,
     newArrivals,
     customizable,
+    onSale,
     brands: brandRows,
     reviews: reviewRows.map((r) => ({
       id: String(r.id),

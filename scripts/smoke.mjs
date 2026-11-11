@@ -113,7 +113,7 @@ if (staffToken) {
   const d = await get(`${ADMIN}/admin/dashboard`, staffToken);
   const html = await d.text();
   check("signed-in staff sees the dashboard", d.status === 200 && html.includes("Welcome"), `HTTP ${d.status}`);
-  check("DataDropX licence credit is visible", html.includes("datadropx.net"));
+  check("admin footer credit is visible", html.includes("Designed by Kranas Tech"));
 
   const list = await get(`${ADMIN}/admin/api/staff`, staffToken);
   const body = await list.json().catch(() => ({}));

@@ -42,6 +42,7 @@ Support-desk ticket screens (`app/support-desk/tickets`) are a candidate to keep
 - **Attribution is mandatory**: "Designed & developed by DataDropX" with a link to https://datadropx.net must stay visible in the UI, by default in the footer. It may be restyled, but it must stay readable and linked. Do not remove `BrandCredit` (footer and auth layout).
 - Selling the template itself as a paid template is not allowed. Selling the business application built on it is allowed.
 - **Impact**: the admin footer and the admin login page will show the DataDropX credit.
+- **Update 2026-11-11**: the owner chose to remove this credit, after being told about the licence condition. See OPEN_QUESTIONS #7a.
 
 ---
 

@@ -47,4 +47,4 @@ node scripts/smoke.mjs        # HTTP smoke test against running apps
 See [knowledge-base/README.md](knowledge-base/README.md). Current status is in [IMPLEMENTATION_PLAN.md](knowledge-base/IMPLEMENTATION_PLAN.md).
 
 ## Credits
-The admin dashboard is built on **DropX Admin** by [DataDropX](https://datadropx.net) under the DropX Admin License, which requires the in-app credit to stay visible. The storefront layout takes visual inspiration from the free "Bookly" template by TemplatesJungle; none of its code or assets are used.
+The admin dashboard is built on **DropX Admin** by DataDropX. Its in-app credit was replaced with "Designed by Kranas Tech" at the owner's request (knowledge-base/OPEN_QUESTIONS.md #7a). The storefront's layout and motions follow the "Bookly" template's design, re-implemented as original code; none of Bookly's code or assets are used (#6a).

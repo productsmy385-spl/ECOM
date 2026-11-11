@@ -16,7 +16,7 @@ const AVAILABILITY = {
 } as const;
 
 /** Fetches the public product detail on demand and shows a compact preview. */
-export function QuickViewButton({ slug, name }: { slug: string; name: string }) {
+export function QuickViewButton({ slug, name, round = false }: { slug: string; name: string; round?: boolean }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<ProductDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +43,15 @@ export function QuickViewButton({ slug, name }: { slug: string; name: string }) 
       }}
     >
       <Dialog.Trigger
-        className="absolute bottom-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-dropdown opacity-100 transition-opacity hover:bg-white focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+        className={
+          round
+            ? "relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-ink text-white transition-colors duration-300 hover:bg-primary"
+            : "absolute bottom-2 right-2 z-10 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-dropdown opacity-100 transition-opacity hover:bg-white focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+        }
         aria-label={`Quick view: ${name}`}
+        title="Quick view"
       >
-        <Eye className="h-3.5 w-3.5" aria-hidden="true" /> Quick view
+        <Eye className={round ? "h-4 w-4" : "h-3.5 w-3.5"} aria-hidden="true" /> {!round && "Quick view"}
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-fade-in" />

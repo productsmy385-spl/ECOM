@@ -3,12 +3,9 @@ export const siteConfig = {
   brand: process.env.NEXT_PUBLIC_BRAND_NAME ?? "Crimsonne",
   description: "Store administration: catalog, orders, designs, deliveries and reports.",
   /**
-   * Required by the DropX Admin License (condition 2): the admin UI must keep a
-   * visible, readable "Designed & developed by DataDropX" credit linking to
-   * https://datadropx.net. Do not remove — see components/layout/footer.tsx.
+   * Footer credit. Replaced the DataDropX credit on 2026-11-11 at the owner's
+   * explicit request (knowledge-base/OPEN_QUESTIONS.md #7a), knowing the DropX
+   * Admin licence asks for that credit.
    */
-  templateCredit: {
-    name: "DataDropX",
-    url: "https://datadropx.net",
-  },
+  credit: "Kranas Tech",
 } as const;

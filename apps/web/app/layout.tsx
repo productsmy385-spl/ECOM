@@ -4,6 +4,7 @@ import { clerkAppearance } from "@ecom/ui/clerk-appearance";
 import { designFontVariables } from "@ecom/ui/design-fonts";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
+import { Preloader } from "@/components/preloader";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { WishlistProvider } from "@/components/wishlist";
@@ -35,6 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <ClerkProvider signInUrl="/login" signUpUrl="/register" afterSignOutUrl="/" appearance={clerkAppearance}>
     <html lang="en-IN" className={`${sora.variable} ${inter.variable} ${designFontVariables}`}>
       <body className="flex min-h-screen flex-col antialiased">
+        <Preloader />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
           Skip to content
         </a>

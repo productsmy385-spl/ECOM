@@ -17,10 +17,10 @@ export function MobileNav({ categories, brand }: { categories: NavCategory[]; br
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/45 data-[state=open]:animate-fade-in" />
-        <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[86vw] max-w-sm flex-col bg-card shadow-modal focus:outline-none data-[state=open]:animate-slide-in-left">
+        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-[86vw] max-w-sm flex-col bg-card shadow-modal transition-transform duration-500 ease-in-out focus:outline-none data-[state=open]:animate-[slide-in-right_0.5s_ease-in-out]">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <Dialog.Title className="font-display text-lg font-bold">{brand}</Dialog.Title>
-            <Dialog.Close className="rounded-lg p-2 hover:bg-muted" aria-label="Close menu">
+            <Dialog.Close className="spin-on-hover rounded-lg p-2 hover:bg-muted" aria-label="Close menu">
               <X className="h-5 w-5" />
             </Dialog.Close>
           </div>
