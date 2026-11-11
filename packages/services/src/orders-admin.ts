@@ -517,3 +517,29 @@ export async function listPaymentsAdmin(ctx: ServiceContext, raw: unknown) {
   const total = t?.n ?? 0;
   return { items: rows, page: q.page, pageSize: q.pageSize, total, totalPages: Math.max(1, Math.ceil(total / q.pageSize)) };
 }
+
+export interface OrderSummary {
+  total: number;
+  inProgress: number;
+  delivered: number;
+  awaitingPayment: number;
+  /** Paid order value (paise); null when the actor can't see money figures. */
+  revenue: number | null;
+}
+
+/** Headline figures for the Orders page, within what this actor may see. */
+export async function orderSummary(ctx: ServiceContext): Promise<OrderSummary> {
+  if (!canAny(ctx.actor, ["orders.view", "orders.view_assigned"])) throw new AuthorizationError();
+  const [r] = await db
+    .select({
+      total: sql<number>`count(*) filter (where ${orders.status} not in ('pending','payment_pending'))::int`,
+      inProgress: sql<number>`count(*) filter (where ${orders.status} in ('confirmed','design_review','design_approved','production','quality_check','packed','ready_for_dispatch'))::int`,
+      delivered: sql<number>`count(*) filter (where ${orders.status} = 'delivered')::int`,
+      awaitingPayment: sql<number>`count(*) filter (where ${orders.status} = 'payment_pending')::int`,
+      revenue: sql<number>`coalesce(sum(${orders.totalAmount}) filter (where ${orders.paymentStatus} in ('captured','partially_refunded')), 0)::bigint`,
+    })
+    .from(orders)
+    .where(visibility(ctx.actor));
+  const money = canAny(ctx.actor, ["payments.view", "reports.view"]);
+  return { total: r?.total ?? 0, inProgress: r?.inProgress ?? 0, delivered: r?.delivered ?? 0, awaitingPayment: r?.awaitingPayment ?? 0, revenue: money ? Number(r?.revenue ?? 0) : null };
+}

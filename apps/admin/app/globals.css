@@ -7,6 +7,32 @@
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
 
+/*
+ * DropX gradient metric cards, re-coloured with the Adira palette. Every stop
+ * keeps white text at WCAG AA (≥ 4.5:1): crimson 5.5, #e8114f 4.6, success
+ * 4.8, warning/orange ≥ 5.0, info ≥ 5.2.
+ */
+.gradient-primary { background: linear-gradient(135deg, #cf0f47 0%, #e8114f 100%); }
+.gradient-success { background: linear-gradient(135deg, #0f8a4f 0%, #0b6e3f 100%); }
+.gradient-warning { background: linear-gradient(135deg, #c2410c 0%, #b45309 100%); }
+.gradient-info { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+.gradient-dark { background: linear-gradient(135deg, #3f3f46 0%, #000000 100%); }
+.gradient-rose { background: linear-gradient(135deg, #a80c3a 0%, #cf0f47 100%); }
+
+/* DropX table look: small uppercase headers, soft row hover. */
+@layer components {
+  .data-table thead th {
+    font-size: var(--text-2xs);
+    line-height: var(--text-2xs--line-height);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .data-table tbody tr { transition: background-color 150ms ease; }
+  .data-table tbody tr:last-child { border-bottom-width: 0; }
+}
+
 .stagger > * { animation-fill-mode: both; }
 .stagger > *:nth-child(2) { animation-delay: 50ms; }
 .stagger > *:nth-child(3) { animation-delay: 100ms; }
