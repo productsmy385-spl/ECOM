@@ -27,7 +27,7 @@ function deliveryWindow(days: [number, number]) {
   return `${fmt(days[0])} – ${fmt(days[1])}`;
 }
 
-export function ProductView({ product, initialSku }: { product: ProductDetail; initialSku?: string }) {
+export function ProductView({ product, initialSku, customizable }: { product: ProductDetail; initialSku?: string; customizable: boolean }) {
   const start = product.variants.find((v) => v.sku === initialSku) ?? product.variants.find((v) => v.isDefault) ?? product.variants[0]!;
   const [variant, setVariant] = useState<Variant>(start);
   const [imageIndex, setImageIndex] = useState(0);
@@ -193,13 +193,19 @@ export function ProductView({ product, initialSku }: { product: ProductDetail; i
           </p>
         )}
 
-        {product.isCustomizable && (
-          <div className="flex gap-3 rounded-xl bg-blush-50 p-4">
-            <Palette className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-            <div className="text-sm">
-              <p className="font-semibold">Personalisation available</p>
-              <p className="text-muted-foreground">This product can be customised. The online design studio opens soon.</p>
+        {customizable && (
+          <div className="flex flex-col gap-3 rounded-xl bg-blush-50 p-4 sm:flex-row sm:items-center">
+            <Palette className="hidden h-6 w-6 shrink-0 text-primary sm:block" aria-hidden="true" />
+            <div className="flex-1 text-sm">
+              <p className="font-semibold">Make it yours</p>
+              <p className="text-muted-foreground">Choose colours, add text or your own artwork, and see it live.</p>
             </div>
+            <Link
+              href={`/customize/${product.id}?v=${encodeURIComponent(variant.sku)}`}
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover"
+            >
+              <Palette className="h-4 w-4" aria-hidden="true" /> Customise this product
+            </Link>
           </div>
         )}
 

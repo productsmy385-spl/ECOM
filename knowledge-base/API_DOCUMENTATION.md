@@ -64,6 +64,17 @@ Money is in **paise** everywhere in the API. Prices are GST-inclusive.
 | `POST /variants/:id/stock` | `inventory.manage` | `{ delta, note }`. Written to the ledger. Can't drop below reserved (409). |
 | `GET /uploads/imagekit-auth` | product or category write | `{ token, expire, signature, publicKey, urlEndpoint }`, or 503 if ImageKit isn't configured |
 
+### Customisation and designs (Phase 4)
+| Method & path | Permission | Notes |
+|---|---|---|
+| `GET /products/:id/options` · `PUT` | `products.view` · `products.update` | PUT replaces the whole option set (`{ options: [...] }`). It sets `isCustomizable` from the active options. 422 responses include `issues[{path, message}]`. |
+| `GET /designs?status=&mine=1&page=` | `designs.view` (all) or `designs.view_assigned` (own) | Drafts are never listed |
+| `GET /designs/:id` | as above; not visible → 404 | |
+| `POST /designs/:id/assign` | `designs.assign` | `{ designerId \| null }` |
+| `POST /designs/:id/review` | `designs.approve` | `{ decision: approved \| changes_requested \| rejected, comment? }` (comment ≥ 5 chars unless approving) |
+| `POST /designs/:id/notes` | `designs.update` or `designs.approve` | Internal note |
+| `GET /designers` | `designs.assign` | Eligible staff |
+
 ### Auth (Better Auth)
 `/admin/api/auth/*`: sign-in, sign-out, `request-password-reset`, `reset-password`, `change-password`, get-session. See AUTHENTICATION.md.
 
@@ -78,6 +89,10 @@ Rate limits are per IP and in memory (see SECURITY.md).
 | `GET /api/search/suggest?q=` | 60/min | `{ products[≤6], categories[≤4], brands[≤4] }`. Queries shorter than 2 characters return nothing. |
 | `GET /api/products/:slug` | 120/min | Published products only. Availability is coarse (`in_stock \| low_stock \| out_of_stock`); exact stock counts are never exposed. |
 | `POST /api/newsletter` | 5/min | `{ email }`. Same-origin only. Idempotent, and returns the same response for new and existing addresses. |
+| `GET /api/designs` · `POST` | 60/min · 20/min | My designs; create (sets the owner cookie on first save) |
+| `GET/PUT/DELETE /api/designs/:id` | 60/min | PUT body `{ config, variantId?, name?, baseVersion }`, 409 if stale or locked. DELETE only for editable designs. |
+| `POST /api/designs/:id/submit` · `/duplicate` | 20/min | Submit enforces required options |
+| `GET /api/uploads/design-auth` | 20/min | ImageKit signature (10 min, folder `/customer-designs`), or 503 if not configured |
 | `/api/auth/*` | per-route | Customer auth |
 | `GET /api/health` | none | |
 

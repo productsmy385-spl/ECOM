@@ -75,9 +75,13 @@ Sales, revenue, product, category, customer, inventory, payment, refund, deliver
 ## Phase 10: Hardening and release ⬜
 Playwright E2E. Load test. CSP. Redis rate limiting. Backup-restore drill. Railway production deploy. Clean ZIP.
 
-## Phase 4: Customisation engine 🟡 (in progress)
-- ✅ Shared design model and pricing (`@ecom/validation/customization`), SVG renderer (`@ecom/ui/design`), services for options, designs, versions, submit, review, assignment and claim. 23 tests.
-- ⬜ Admin options builder + presets, admin Designs review screens, storefront `/customize/[productId]` editor, "my design" page, design image uploads.
+## Phase 4: Customisation engine ✅ (2026-11-11)
+See [DESIGN_CUSTOMIZATION.md](DESIGN_CUSTOMIZATION.md).
+- ✅ Shared design model and pricing, SVG renderer, services (options, designs, versions, submit, review, assignment, claim). 23 tests.
+- ✅ Admin: options builder with presets and live canvas preview; Designs queue and detail (exact render, choices, prescription, images, history, assign, approve/changes/reject, notes).
+- ✅ Storefront: `/customize/[productId]` editor; `/designs` and `/designs/[id]`; "Customise this product" on product pages, shown only when configured.
+- ✅ Browser end-to-end: configure → design → submit → assign → request changes → customer revises → approve. Other visitors get 404. Mobile is OK.
+- 🟡 Customer image uploads are built but untested against real ImageKit (needs keys).
 
 ## Known gaps and follow-ups (honest list)
 - Production: enable Postgres scheduled backups; configure Resend and ImageKit; add a custom domain (DEPLOYMENT.md).

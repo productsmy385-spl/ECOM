@@ -6,6 +6,7 @@ export class ApiError extends Error {
     readonly status: number,
     message: string,
     readonly fieldErrors?: Record<string, string[] | undefined>,
+    readonly issues?: { path: string; message: string }[],
   ) {
     super(message);
     this.name = "ApiError";
@@ -24,14 +25,18 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
     credentials: "same-origin",
     cache: "no-store",
   });
-  const data = (await res.json().catch(() => ({}))) as { error?: string; fieldErrors?: Record<string, string[]> };
+  const data = (await res.json().catch(() => ({}))) as {
+    error?: string;
+    fieldErrors?: Record<string, string[]>;
+    issues?: { path: string; message: string }[];
+  };
   if (res.status === 401 && typeof window !== "undefined") {
     // Deliberate full reload (not router.push): this runs outside React, and a
     // revoked session should also discard all cached client state.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.assign("/admin/login");
   }
-  if (!res.ok) throw new ApiError(res.status, data.error ?? "Request failed.", data.fieldErrors);
+  if (!res.ok) throw new ApiError(res.status, data.error ?? "Request failed.", data.fieldErrors, data.issues);
   return data as T;
 }
 

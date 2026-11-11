@@ -1,4 +1,4 @@
-import { relatedProducts } from "@ecom/services";
+import { getCustomizerData, relatedProducts } from "@ecom/services";
 import { brand } from "@ecom/ui/brand";
 import { BadgeCheck, MessageSquareText } from "lucide-react";
 import type { Metadata } from "next";
@@ -35,7 +35,11 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
   if (!SLUG.test(slug)) notFound();
   const [product, { v }] = await Promise.all([productBySlug(slug), searchParams]);
   if (!product) notFound();
-  const related = await relatedProducts(product.id, product.category.slug);
+  const [related, customizer] = await Promise.all([
+    relatedProducts(product.id, product.category.slug),
+    // Only offer "Customise" when the customiser really exists (options configured).
+    product.isCustomizable ? getCustomizerData(product.id) : Promise.resolve(null),
+  ]);
 
   const prices = product.variants.map((x) => x.price);
   const jsonLd = {
@@ -76,7 +80,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
           <span className="text-foreground">{product.name}</span>
         </nav>
 
-        <ProductView product={product} initialSku={v} />
+        <ProductView product={product} initialSku={v} customizable={customizer !== null} />
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-10">

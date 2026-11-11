@@ -50,7 +50,12 @@ function errorResponse(err: unknown): Response {
   const headers = { "Cache-Control": "no-store" };
   if (err instanceof ZodError) {
     return Response.json(
-      { error: "Please correct the highlighted fields.", fieldErrors: z.flattenError(err).fieldErrors },
+      {
+        error: "Please correct the highlighted fields.",
+        fieldErrors: z.flattenError(err).fieldErrors,
+        // Full paths for nested forms (e.g. options.2.config.choices.1.hex).
+        issues: err.issues.slice(0, 50).map((i) => ({ path: i.path.join("."), message: i.message })),
+      },
       { status: 422, headers },
     );
   }

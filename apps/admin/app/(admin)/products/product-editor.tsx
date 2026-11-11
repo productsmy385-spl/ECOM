@@ -15,7 +15,8 @@ import type { AdminProduct, AdminVariant, CatalogOptions } from "@/lib/api-types
 import { ACCEPTED_TYPES, ikThumb, uploadToImageKit } from "@/lib/imagekit-upload";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDown, ArrowUp, ExternalLink, ImagePlus, Loader2, PackagePlus, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ExternalLink, ImagePlus, Loader2, PackagePlus, Plus, Trash2, Wand2, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
@@ -260,6 +261,11 @@ export function ProductEditor({ product, can, webUrl }: Props) {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {statusBadge}
+            {product && (
+              <Link href={`/products/${product.id}/customization`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <Wand2 className="h-4 w-4" /> Customisation
+              </Link>
+            )}
             {product?.status === "published" && (
               <a href={`${webUrl}/products/${product.slug}`} target="_blank" rel="noopener" className={buttonVariants({ variant: "outline", size: "sm" })}>
                 <ExternalLink className="h-4 w-4" /> View in store

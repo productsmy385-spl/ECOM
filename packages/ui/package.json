@@ -7,7 +7,8 @@
     "./tokens.css": "./src/tokens.css",
     "./brand": "./src/brand.ts",
     "./format": "./src/format.ts",
-    "./design": "./src/design/renderer.tsx"
+    "./design": "./src/design/renderer.tsx",
+    "./design-fonts": "./src/design/fonts.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -16,9 +17,11 @@
     "@ecom/validation": "workspace:*"
   },
   "peerDependencies": {
+    "next": "^16.0.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19"
+    "@types/react": "^19",
+    "next": "^16.4.5"
   }
 }

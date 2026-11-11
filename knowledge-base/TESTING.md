@@ -35,6 +35,11 @@ Note: sign-in is rate limited to 5 per minute per IP, and this includes localhos
   - The category bar wrapped onto two lines.
   - pg concurrent-query deprecation inside transactions.
 
+## Phase 4 results (2026-11-11) `[fact]`
+- `pnpm test`: **89/89 passed** (adds 10 design-model unit tests and 13 customisation integration tests).
+- Playwright end-to-end (desktop and mobile): admin options preset → customer picks options, adds and drags text, changes font → live price ₹1,598 (base ₹1,299 + ₹99 + ₹200) → save → submit → staff assign → request changes → customer sees the message, edits and resubmits → staff approve → editing locked. Another visitor gets 404 on the page and the API. No console errors and no overflow.
+- Defects found and fixed: the mobile action buttons collapsed (`flex-1` in a column); dragging selected SVG text.
+
 ## Rules
 - Every protected API gets a test proving (a) 401 when anonymous, (b) 403/404 without the permission, and (c) 404 for another user's record (IDOR).
 - Don't mock the database in integration tests.

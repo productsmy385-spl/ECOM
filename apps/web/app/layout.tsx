@@ -1,4 +1,5 @@
 import { brand } from "@ecom/ui/brand";
+import { designFontVariables } from "@ecom/ui/design-fonts";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
@@ -24,7 +25,7 @@ export const dynamic = "force-dynamic";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${sora.variable} ${inter.variable}`}>
+    <html lang="en-IN" className={`${sora.variable} ${inter.variable} ${designFontVariables}`}>
       <body className="flex min-h-screen flex-col antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
           Skip to content

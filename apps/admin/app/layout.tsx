@@ -1,6 +1,7 @@
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/config/site";
 import type { Metadata, Viewport } from "next";
+import { designFontVariables } from "@ecom/ui/design-fonts";
 import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 
@@ -23,7 +24,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${sora.variable} ${inter.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${sora.variable} ${inter.variable} ${designFontVariables}`}>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
