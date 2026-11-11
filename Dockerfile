@@ -49,6 +49,8 @@ WORKDIR /app
 RUN addgroup -S app && adduser -S app -G app
 COPY --from=build --chown=app:app /repo/apps/${APP}/.next/standalone ./
 COPY --from=build --chown=app:app /repo/apps/${APP}/.next/static ./apps/${APP}/.next/static
+# Static files (demo artwork, icons). Standalone output does not include public/.
+COPY --from=build --chown=app:app /repo/apps/${APP}/public ./apps/${APP}/public
 # Migration + seed runners (self-contained bundles) and the SQL migrations.
 COPY --from=build --chown=app:app /repo/packages/db/dist ./db
 COPY --from=build --chown=app:app /repo/packages/db/migrations ./migrations
