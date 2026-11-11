@@ -34,7 +34,7 @@ export async function SiteHeader() {
   return (
     <>
     {ann.enabled && ann.text && (
-      <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:text-sm">
+      <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:text-sm print:hidden">
         {ann.href ? (
           ann.href.startsWith("/") ? (
             <Link href={ann.href} className="underline-offset-2 hover:underline">
@@ -50,7 +50,7 @@ export async function SiteHeader() {
         )}
       </div>
     )}
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
+    <header className="sticky top-0 z-40 bg-white/95 print:hidden backdrop-blur supports-[backdrop-filter]:bg-white/90">
       {/* Info strip: three short messages, all from store settings. */}
       <div className="hidden border-b border-border md:block">
         <div className="grid grid-cols-3 text-center text-xs text-foreground/80">

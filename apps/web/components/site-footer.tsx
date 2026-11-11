@@ -23,7 +23,7 @@ export async function SiteFooter() {
   ).filter(([k]) => site.social[k]);
   const wa = contact.whatsapp.replace(/[^\d]/g, "");
   return (
-    <footer className="mt-10 bg-ink text-white">
+    <footer className="mt-10 bg-ink text-white print:hidden">
       <section className="border-b border-white/10" aria-labelledby="newsletter-heading">
         <div className="container-store flex flex-col gap-5 py-12 md:flex-row md:items-center md:justify-between">
           <div>

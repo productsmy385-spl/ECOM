@@ -26,11 +26,12 @@ import {
   orderStatusHistory,
   paymentEvents,
   payments,
+  products,
   users,
 } from "@ecom/db";
 import { AuthenticationError } from "@ecom/rbac";
 import { checkoutSchema, priceOrder, razorpayVerifySchema, type ShippingAddress } from "@ecom/validation";
-import { and, asc, desc, eq, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 import { clearCartLines, _findCartForCheckout as findCart, loadCartLines, loadUsableCoupon, type Shopper, type UsableCoupon } from "./cart";
 import { ConflictError, NotFoundError, uniqueViolation, ValidationError } from "./errors";
 import { type PaymentGateway, razorpayGateway, verifyRazorpayWebhook } from "./razorpay";
@@ -542,8 +543,10 @@ export interface CustomerOrderView {
   amounts: { subtotal: number; discount: number; shipping: number; tax: number; total: number };
   couponCode: string | null;
   requiresDesignReview: boolean;
-  items: { id: string; productName: string; variantName: string; imageUrl: string | null; quantity: number; unitPrice: number; customizationPrice: number; lineTotal: number; summary: { label: string; value: string }[] }[];
+  items: { id: string; productId: string; productSlug: string | null; variantId: string; hasDesign: boolean; productName: string; variantName: string; imageUrl: string | null; quantity: number; unitPrice: number; customizationPrice: number; lineTotal: number; summary: { label: string; value: string }[] }[];
   history: { status: OrderStatus; note: string | null; at: Date }[];
+  deliveredAt: Date | null;
+  cancelReason: string | null;
   /** Razorpay orders still awaiting payment, until this time. */
   payBy: Date | null;
 }
@@ -564,6 +567,10 @@ export async function getOrder(access: OrderAccess, orderIdOrNumber: string): Pr
     .where(and(eq(orderStatusHistory.orderId, o.id), eq(orderStatusHistory.isCustomerVisible, true)))
     .orderBy(asc(orderStatusHistory.createdAt));
   const { paymentHoldMinutes } = await getCheckoutSettings();
+  const productIds = [...new Set(items.map((i) => i.productId))];
+  const slugs = productIds.length
+    ? new Map((await db.select({ id: products.id, slug: products.slug }).from(products).where(and(inArray(products.id, productIds), eq(products.status, "published"), isNull(products.deletedAt)))).map((p) => [p.id, p.slug]))
+    : new Map<string, string>();
   return {
     id: o.id,
     orderNumber: o.orderNumber,
@@ -579,6 +586,10 @@ export async function getOrder(access: OrderAccess, orderIdOrNumber: string): Pr
     requiresDesignReview: o.requiresDesignReview,
     items: items.map((i) => ({
       id: i.id,
+      productId: i.productId,
+      productSlug: slugs.get(i.productId) ?? null,
+      variantId: i.variantId,
+      hasDesign: !!i.designId,
       productName: i.productName,
       variantName: i.variantName,
       imageUrl: i.imageUrl,
@@ -589,6 +600,8 @@ export async function getOrder(access: OrderAccess, orderIdOrNumber: string): Pr
       summary: ((i.customization as { summary?: { label: string; value: string }[] } | null)?.summary ?? []).map(({ label, value }) => ({ label, value })),
     })),
     history,
+    deliveredAt: o.deliveredAt,
+    cancelReason: o.cancelReason,
     payBy: o.status === "payment_pending" ? new Date(o.placedAt.getTime() + paymentHoldMinutes * 60_000) : null,
   };
 }

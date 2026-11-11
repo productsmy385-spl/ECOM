@@ -1,6 +1,6 @@
 import type { Permission } from "@ecom/rbac";
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, Boxes, Brush, GalleryHorizontal, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
+import { BarChart3, Boxes, Brush, GalleryHorizontal, LifeBuoy, MessageSquareText, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -38,6 +38,13 @@ export const navigation: NavGroup[] = [
       { title: "Orders", href: "/orders", icon: ShoppingBag, anyOf: ["orders.view", "orders.view_assigned"] },
       { title: "Payments", href: "/payments", icon: CreditCard, anyOf: ["payments.view"] },
       { title: "Customers", href: "/customers", icon: UserRound, anyOf: ["customers.view"] },
+    ],
+  },
+  {
+    label: "Customer care",
+    items: [
+      { title: "Support", href: "/support", icon: LifeBuoy, anyOf: ["support.view"] },
+      { title: "Reviews", href: "/reviews", icon: MessageSquareText, anyOf: ["reviews.moderate"] },
     ],
   },
   {

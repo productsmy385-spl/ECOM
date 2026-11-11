@@ -1,5 +1,10 @@
-import { getCustomizerData, relatedProducts } from "@ecom/services";
+import { getCheckoutSettings, getCustomizerData, myReviewState, relatedProducts } from "@ecom/services";
 import { brand } from "@ecom/ui/brand";
+import { formatPaise } from "@ecom/ui/format";
+import { RecentlyViewed, TrackView } from "@/components/recently-viewed";
+import { getCustomer } from "@/lib/customer";
+import { DeliveryCheck } from "./delivery-check";
+import { ReviewForm } from "./review-form";
 import { BadgeCheck, MessageSquareText } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -35,11 +40,15 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
   if (!SLUG.test(slug)) notFound();
   const [product, { v }] = await Promise.all([productBySlug(slug), searchParams]);
   if (!product) notFound();
-  const [related, customizer] = await Promise.all([
+  const customer = await getCustomer();
+  const [related, customizer, reviewState, shipping] = await Promise.all([
     relatedProducts(product.id, product.category.slug),
     // Only offer "Customise" when the customiser really exists (options configured).
     product.isCustomizable ? getCustomizerData(product.id) : Promise.resolve(null),
+    customer ? myReviewState({ userId: customer.userId }, product.id) : Promise.resolve(null),
+    getCheckoutSettings(),
   ]);
+  const viewed = { id: product.id, slug: product.slug, name: product.name, price: Math.min(...product.variants.map((x) => x.price)), imageUrl: product.images[0]?.url ?? null };
 
   const prices = product.variants.map((x) => x.price);
   const jsonLd = {
@@ -81,6 +90,15 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
         </nav>
 
         <ProductView product={product} initialSku={v} customizable={customizer !== null} requiresDesign={!!customizer?.options.some((o) => o.isRequired)} />
+        <TrackView product={viewed} />
+        <div className="max-w-xl">
+          <DeliveryCheck
+            standardDays={shipping.standardDays}
+            expressDays={shipping.expressDays}
+            productionDays={product.isCustomizable ? 2 : 0}
+            freeAbove={formatPaise(shipping.freeShippingThreshold, { whole: true })}
+          />
+        </div>
 
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-10">
@@ -167,11 +185,13 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
                 </ul>
               </>
             )}
+            <ReviewForm productId={product.id} signedIn={!!customer} initial={reviewState} loginHref={`/login?next=${encodeURIComponent(`/products/${product.slug}#write-review`)}`} />
           </section>
         </div>
       </div>
 
       <ProductRail id="related" title="You may also like" href={`/shop?category=${product.category.slug}`} products={related} />
+      <RecentlyViewed excludeId={product.id} />
     </>
   );
 }

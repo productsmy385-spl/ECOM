@@ -1,6 +1,7 @@
-import { getOrder, NotFoundError, razorpayGateway } from "@ecom/services";
+import { getOrder, NotFoundError, orderSelfService, razorpayGateway } from "@ecom/services";
 import { formatDateIN, formatPaise } from "@ecom/ui/format";
-import { AlertTriangle, CheckCircle2, Clock, MapPin, Package } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, MapPin, Package, Star } from "lucide-react";
+import { OrderActions } from "./order-actions";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -28,6 +29,9 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
   }
   const s = ORDER_STATUS[order.status] ?? { label: order.status, tone: "muted" as const };
   const canPay = order.status === "payment_pending" && !!order.payBy && order.payBy > new Date() && !!razorpayGateway();
+  const self = orderSelfService(order);
+  const delivered = ["delivered", "return_requested", "returned"].includes(order.status);
+  const invoiceHref = ["pending", "payment_pending", "cancelled"].includes(order.status) ? null : `/orders/${order.orderNumber}/invoice${sp.t ? `?t=${encodeURIComponent(sp.t)}` : ""}`;
 
   return (
     <div className="container-store max-w-4xl py-8 sm:py-12">
@@ -37,7 +41,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           <div>
             <p className="font-display text-lg font-semibold">Thank you! Your order is placed.</p>
             <p className="text-sm text-muted-foreground">
-              {order.email || customer ? `We'll email updates${order.email ? ` to ${order.email}` : ""}. ` : ""}
+              Follow its progress on this page{customer ? " or in My orders" : ""}.
               {sp.t ? "Bookmark this page: it's your private link to this order." : ""}
             </p>
           </div>
@@ -73,6 +77,23 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
         </div>
       )}
 
+      {order.status === "cancelled" && order.cancelReason && (
+        <p className="mt-6 rounded-xl bg-muted p-4 text-sm text-muted-foreground">
+          {order.cancelReason}
+          {order.paymentMethod !== "cod" && order.paymentStatus !== "created" && order.paymentStatus !== "failed" && " · Paid online orders are refunded to the original payment method in 5–7 business days."}
+        </p>
+      )}
+
+      <OrderActions
+        orderId={order.id}
+        orderNumber={order.orderNumber}
+        canCancel={self.canCancel}
+        canReturn={self.canReturn}
+        returnBy={self.returnBy?.toISOString() ?? null}
+        signedIn={!!customer && !sp.t}
+        invoiceHref={invoiceHref}
+      />
+
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
         <section className="rounded-2xl border border-border" aria-labelledby="items-h">
           <h2 id="items-h" className="flex items-center gap-2 border-b border-border px-5 py-4 font-display font-semibold">
@@ -90,6 +111,18 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
                     {i.variantName} · Qty {i.quantity}
                   </p>
                   {i.summary.length > 0 && <p className="mt-1 text-xs text-muted-foreground">{i.summary.map((x) => `${x.label}: ${x.value}`).join(" · ")}</p>}
+                  {i.productSlug && (
+                    <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold">
+                      {delivered && customer && (
+                        <Link href={`/products/${i.productSlug}#write-review`} className="inline-flex items-center gap-1 text-link hover:underline">
+                          <Star className="h-3.5 w-3.5" aria-hidden="true" /> Rate &amp; review
+                        </Link>
+                      )}
+                      <Link href={`/products/${i.productSlug}`} className="text-muted-foreground hover:text-primary">
+                        View product
+                      </Link>
+                    </p>
+                  )}
                 </div>
                 <p className="shrink-0 text-sm font-semibold">{formatPaise(i.lineTotal)}</p>
               </li>

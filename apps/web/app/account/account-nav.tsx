@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, LayoutGrid, LogOut, MapPin, Package, Palette, UserRound } from "lucide-react";
+import { Heart, LayoutGrid, LifeBuoy, LogOut, MapPin, Package, Palette, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -14,6 +14,7 @@ const LINKS = [
   { href: "/account/addresses", label: "Addresses", icon: MapPin },
   { href: "/account/wishlist", label: "Wishlist", icon: Heart },
   { href: "/designs", label: "My designs", icon: Palette },
+  { href: "/account/support", label: "Help & support", icon: LifeBuoy },
 ];
 
 export function AccountNav() {

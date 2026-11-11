@@ -41,3 +41,6 @@ export * from "./deliveries";
 export * from "./reports";
 export * from "./report-export";
 export * from "./website";
+export * from "./reviews";
+export * from "./customer-orders";
+export * from "./support";
