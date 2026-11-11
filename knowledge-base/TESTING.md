@@ -12,6 +12,11 @@
 - `tests/global-setup.ts` migrates and seeds it with a known Super Admin (`root@test.local`). It refuses to run if `TEST_DATABASE_URL` equals `DATABASE_URL`.
 - Files run serially because they share one database. Each file cleans up the rows it creates, using a per-run email suffix.
 
+## Phases 9–10 results (2026-11-11) `[fact]`
+- **Vitest:** 133 tests pass, including 7 for reports and exports.
+- **Playwright** (`pnpm e2e`, run against `next start` builds on 3300/3301): 15 passed, 1 skipped. Point `WEB_URL`/`ADMIN_URL` at the deployed apps to run the same suite there.
+- **Before pushing:** `DATABASE_URL= pnpm --filter @ecom/admin --filter @ecom/web build` must pass. Modules must not touch the database at import time.
+
 ## Testing with Clerk (from 2026-11-11)
 - **Integration tests never call Clerk.** `resolveClerkUser(id, fetchIdentity)` takes the identity as a function, so tests inject one (`packages/auth/src/auth.integration.test.ts`).
 - **Smoke test** (`scripts/smoke.mjs`) mints short-lived session tokens with the Clerk Backend API (`sessions.createSession` and `getToken`) and sends them as `Authorization: Bearer`. It creates and deletes one `smoke-…+clerk_test@example.com` Clerk user. Staff checks need `SMOKE_STAFF_EMAIL`: a Super Admin who already has a Clerk account. They are skipped otherwise. This requires a Clerk **development** instance.

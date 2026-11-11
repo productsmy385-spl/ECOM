@@ -34,4 +34,17 @@
   - **Cart lines** and orders of other shoppers read as 404. All write endpoints are same-origin only.
 - **Before scale-out**: Redis-backed rate limiting.
 - **Under evaluation**: Postgres RLS for customer-owned tables. Needs `set_config('app.user_id', …, true)` inside each transaction so pooled connections never leak context. Backend checks stay mandatory regardless.
-- **Before launch**: a Content-Security-Policy (once the Razorpay/ImageKit/Maps origins are known).
+- **Content-Security-Policy (done 2026-11-11, Phase 10)** `[fact]`:
+  - Both apps send it, built by `packages/ui/src/security-headers.ts`.
+  - **Allowed origins.** Scripts, frames and connections may reach only:
+    - Clerk: its Frontend API host, decoded from `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` at build time, plus `cdn.protect.clerk.com`;
+    - Cloudflare Turnstile;
+    - Razorpay (storefront only);
+    - ImageKit.
+  - **Blocked outright:** `object-src 'none'`, `base-uri 'self'`, form posts to other sites, and framing (admin: `frame-ancestors 'none'`).
+  - **Inline scripts:** `script-src` keeps `'unsafe-inline'` because Next.js inlines its bootstrap. Nonces would make every page dynamic.
+  - **Other headers:** HSTS (1 year) in production, and COOP `same-origin-allow-popups`, which Razorpay's popup flow needs.
+  - **Check:** the Playwright suite (`pnpm e2e`) fails on any CSP violation.
+  - **Not yet covered:** a signed-in checkout with Razorpay keys, and the admin ImageKit upload. Re-run e2e and smoke tests when the keys are set.
+- **Rate limiting** stays in-memory per instance (`apps/web/lib/rate-limit.ts`). That is correct while each app runs one replica (OPEN_QUESTIONS #14: Redis isn't provisioned). It must move to Redis before scaling out.
+- **Report exports:** CSV cells starting with `= + - @` are prefixed with `'` so spreadsheets don't run them as formulas. XLSX writes text as inline strings, which are never formulas.

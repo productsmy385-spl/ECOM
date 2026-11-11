@@ -60,8 +60,31 @@ The admin service only serves `/admin/*`. Any other path, including the bare dom
 - **Infrastructure**: `git revert` the `.railway/railway.ts` change, then `railway config plan` / `apply`.
 - **Schema**: migrations are forward-only. Fix forward. Restore from a Postgres backup only for data loss (see DATABASE.md). **Enable scheduled backups on the Postgres service** (not yet done; this needs a dashboard action by the owner).
 
+## Backup and restore
+**Drill passed 2026-11-11** `[fact]`. It ran against the local database, so production customer data was not copied to a laptop.
+- A `pg_dump -Fc` restored into a new database with `pg_restore --no-owner`.
+- Row counts for users, products, orders, stock movements and migrations matched exactly.
+
+Runbook for production:
+1. **Owner action (still open):** in Railway, open Postgres → Backups and enable scheduled backups (daily, with weekly retention). Railway restores a backup in place from the same screen.
+2. **Manual off-site dump before risky changes**, from a shell that has the public URL:
+   - Command: `pg_dump "$DATABASE_PUBLIC_URL" -Fc -f adira-YYYYMMDD.dump`.
+   - Store the file encrypted: it contains customer PII.
+3. **To restore a dump into a fresh database:**
+   - Command: `createdb <new> && pg_restore -d <new> --no-owner adira-YYYYMMDD.dump`.
+   - Check row counts against the source.
+   - Then point `DATABASE_URL` at it, or restore over the original during a maintenance window.
+
+## Release checklist
+- [ ] **Razorpay:** test keys, then live keys and the webhook secret (see above). Then re-run `pnpm e2e` and `scripts/smoke.mjs` against production.
+- [ ] **Demo frames:** remove them with `seed:dev-catalog --remove` (OPEN_QUESTIONS #22). Add the real products and photos.
+- [ ] **Store settings:** store GSTIN and address in Checkout settings (they appear on invoices). Confirm GST on shipping (open item G).
+- [ ] **Backups:** enable scheduled Postgres backups.
+- [ ] **Clerk:** production instance and custom domain. Rebuild both apps, because the CSP reads the Clerk host from the publishable key at build time.
+- [ ] **Custom domain (optional):** set `WEB_URL`/`ADMIN_URL` explicitly.
+
 ## Known gaps
 - No custom domain yet. Both apps use `*.up.railway.app`. When adding one, update the `WEB_URL`/`ADMIN_URL` references (they follow `RAILWAY_PUBLIC_DOMAIN`, so a custom domain needs explicit values).
-- Email (Resend) isn't configured, so invitation and reset emails are logged as errors and not sent in production.
-- ImageKit isn't configured, so uploads report "not configured".
+- No email provider, by owner decision (OPEN_QUESTIONS #21). Clerk sends the sign-in and invitation emails; customer order emails are skipped.
 - In-memory rate limits are fine for 1 replica each. Move them to Redis before scaling out.
+- **Load test not run.** A meaningful one needs a production-like database and payment sandbox. With one replica per app, the current ceiling is unmeasured.

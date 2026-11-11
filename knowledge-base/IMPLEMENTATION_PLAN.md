@@ -133,8 +133,18 @@ Authentication moved from Better Auth to Clerk at the user's request (OPEN_QUEST
 - ✅ **API.** `GET /api/reports/:key?from&to&format=json|csv|xlsx`.
 - ✅ **Tests.** 7 integration tests.
 
-## Phase 10: Hardening and release ⬜
-Playwright E2E. Load test. CSP. Redis rate limiting. Backup-restore drill. Railway production deploy. Clean ZIP.
+## Phase 10: Hardening and release 🟡 (2026-11-11)
+- ✅ **CSP and security headers** for both apps (see SECURITY.md).
+- ✅ **Playwright e2e** (`pnpm e2e`, `e2e/storefront.spec.ts`).
+  - Desktop and mobile: home, shop, product, guest add-to-bag and cart, search, Clerk sign-in, 404, the admin redirect, and the admin API returning 401.
+  - It fails on CSP violations, page errors or sideways scrolling.
+  - Result: 15 passed, 1 skipped (search on mobile).
+- ✅ **Backup and restore drill** (local), plus a production runbook and release checklist in DEPLOYMENT.md.
+- ✅ **Railway production deploy** of every phase.
+- ⏸ **Redis rate limiting.** Deferred by decision: there's no Redis on Railway and one replica per app (OPEN_QUESTIONS #14). It's required before scaling out.
+- ⏸ **Load test.** Deferred until a production-like database and the payment sandbox exist.
+- ⏸ **Owner actions.** These are in DEPLOYMENT.md → Release checklist: Razorpay keys, enable Postgres backups, remove demo frames, GSTIN.
+- ⏸ **Clean ZIP.** Skipped: the GitHub repository is the deliverable (`git archive` produces one on demand).
 
 ## Phase 4: Customisation engine ✅ (2026-11-11)
 See [DESIGN_CUSTOMIZATION.md](DESIGN_CUSTOMIZATION.md).

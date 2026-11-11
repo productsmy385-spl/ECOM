@@ -1,18 +1,14 @@
 import path from "node:path";
 import { existsSync } from "node:fs";
 import type { NextConfig } from "next";
+import { securityHeaders as webSecurityHeaders } from "../../packages/ui/src/security-headers";
 
 // One .env at the monorepo root serves every app locally. Never overrides variables
 // already in the environment, so Railway-injected values always win.
 const rootEnv = path.resolve(process.cwd(), "../../.env");
 if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
-const securityHeaders = [
-  { key: "X-Frame-Options", value: "SAMEORIGIN" },
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), geolocation=(), microphone=()" },
-];
+const securityHeaders = webSecurityHeaders("web");
 
 const nextConfig: NextConfig = {
   output: "standalone",
