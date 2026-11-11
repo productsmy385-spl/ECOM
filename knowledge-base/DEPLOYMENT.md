@@ -32,7 +32,7 @@ railway config apply    # apply the reviewed plan
 ## Secrets and one-off tasks
 | Task | Command |
 |---|---|
-| Set or rotate a secret | `railway variable set CLERK_SECRET_KEY --stdin --service ECOM` |
+| Set or rotate a secret | `railway variables --service ECOM --set "CLERK_SECRET_KEY=…"`. Do **not** pipe into `--stdin` from Windows PowerShell 5.1: it prefixes a BOM, which corrupts the value. After changing any `NEXT_PUBLIC_*` value, push or rebuild, because a redeploy keeps the old inlined value. |
 | Add Resend/ImageKit keys | Set them on `ECOM`; `admin` picks them up through references |
 | Bootstrap or reset the first Super Admin | Run the seed bundle locally against Postgres's **public** URL (below). The seed is idempotent and creates the owner only if the email doesn't exist. |
 
