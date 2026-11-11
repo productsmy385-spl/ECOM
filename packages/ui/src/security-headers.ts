@@ -36,6 +36,8 @@ export function contentSecurityPolicy(opts: { app: "web" | "admin"; dev: boolean
     "connect-src": [
       "'self'",
       ...clerk,
+      // Clerk bot protection probes <id>.client.protect.clerk.com on several ports (production only).
+      "https://*.protect.clerk.com:*",
       "https://clerk-telemetry.com",
       "https://ik.imagekit.io",
       "https://upload.imagekit.io",
