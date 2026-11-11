@@ -7,7 +7,8 @@ import { writeAudit } from "./audit";
 import type { ServiceContext } from "./context";
 import { NotFoundError } from "./errors";
 
-const notStaff = notExists(db.select({ one: sql`1` }).from(userRoles).where(eq(userRoles.userId, users.id)));
+/** Built per call: touching `db` at import time breaks `next build` (no database during builds). */
+const notStaff = () => notExists(db.select({ one: sql`1` }).from(userRoles).where(eq(userRoles.userId, users.id)));
 
 export interface CustomerListItem {
   id: string;
@@ -28,7 +29,7 @@ const lastOrder = sql<Date | null>`(select max(o.placed_at) from ${orders} o whe
 export async function listCustomers(ctx: ServiceContext, raw: unknown): Promise<Paginated<CustomerListItem>> {
   requirePermission(ctx.actor, "customers.view");
   const q = customerListQuery.parse(raw);
-  const f: (SQL | undefined)[] = [isNull(users.deletedAt), eq(users.isStaff, false), notStaff];
+  const f: (SQL | undefined)[] = [isNull(users.deletedAt), eq(users.isStaff, false), notStaff()];
   if (q.status) f.push(eq(users.status, q.status));
   if (q.q) {
     const t = `%${q.q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
@@ -54,7 +55,7 @@ export async function getCustomerAdmin(ctx: ServiceContext, id: string) {
   const [u] = await db
     .select({ id: users.id, name: users.name, email: users.email, phone: users.phone, status: users.status, emailVerified: users.emailVerified, createdAt: users.createdAt, lastLoginAt: users.lastLoginAt, clerkUserId: users.clerkUserId, orderCount, totalSpent: spent })
     .from(users)
-    .where(and(eq(users.id, id), isNull(users.deletedAt), eq(users.isStaff, false), notStaff));
+    .where(and(eq(users.id, id), isNull(users.deletedAt), eq(users.isStaff, false), notStaff()));
   if (!u) throw new NotFoundError("Customer not found.");
   const [addrs, recent, [designs]] = await Promise.all([
     db.select().from(addresses).where(and(eq(addresses.userId, id), isNull(addresses.deletedAt))).orderBy(desc(addresses.isDefault)),
