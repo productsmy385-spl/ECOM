@@ -1,4 +1,4 @@
-import { ArrowRight, Glasses, Palette, Sparkles } from "lucide-react";
+import { ArrowRight, Flower2, Frame, Palette } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export default async function CategoriesPage() {
       <h1 className="font-display text-2xl font-bold sm:text-3xl">All categories</h1>
       <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cats.map((c) => {
-          const Icon = /frame|glass|sun|eye/i.test(c.name) ? Glasses : /custom/i.test(c.name) ? Palette : Sparkles;
+          const Icon = /resin|glu/i.test(c.name) ? Flower2 : /custom|name|gift/i.test(c.name) ? Palette : Frame;
           return (
             <li key={c.id} className="flex flex-col overflow-hidden rounded-xl border border-border bg-card">
               <Link href={`/shop?category=${c.slug}`} className="group">

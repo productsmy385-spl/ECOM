@@ -36,6 +36,13 @@
       "when": 1794368346011,
       "tag": "0004_checkout",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794381401128,
+      "tag": "0005_frames_catalog",
+      "breakpoints": true
     }
   ]
 }

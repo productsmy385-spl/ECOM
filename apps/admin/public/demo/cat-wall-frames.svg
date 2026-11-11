@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img"><rect width="800" height="800" fill="#fff5f5"/><rect y="640" width="800" height="160" fill="#f1e4e4"/><defs>
+    <linearGradient id="mould65" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a4a4a"/><stop offset=".45" stop-color="#2a2a2a"/><stop offset="1" stop-color="#111111"/></linearGradient>
+    <clipPath id="clip66"><rect x="147.5" y="207.5" width="165" height="245"/></clipPath>
+  </defs>
+  <rect x="115" y="181" width="250" height="330" rx="4" fill="#000" opacity=".16" filter="blur(2px)"/>
+  <rect x="105" y="165" width="250" height="330" rx="4" fill="url(#mould65)"/>
+  <rect x="115.125" y="175.125" width="229.75" height="309.75" fill="none" stroke="#4a4a4a" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="127.5" y="187.5" width="205" height="285" fill="#fbfaf7"/>
+  <g clip-path="url(#clip66)"><defs><linearGradient id="sky67" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc6d9"/><stop offset="1" stop-color="#fff0f5"/></linearGradient></defs>
+  <rect x="147.5" y="207.5" width="165" height="245" fill="url(#sky67)"/>
+  <circle cx="266.3" cy="281" r="14.85" fill="#fff6c9" opacity=".95"/>
+  <path d="M147.5 383.9 Q 188.75 317.75 230 369.20000000000005 T 312.5 349.6 V 452.5 H 147.5 Z" fill="#c3a3ff"/>
+  <path d="M147.5 415.75 Q 205.25 359.4 249.8 408.4 T 312.5 398.6 V 452.5 H 147.5 Z" fill="#8a3ffc"/></g>
+  <rect x="147.5" y="207.5" width="165" height="245" fill="none" stroke="#000" stroke-opacity=".12"/>
+  <path d="M127.5 187.5 L 242.5 187.5 L 127.5 330 Z" fill="#fff" opacity=".12"/><defs>
+    <linearGradient id="mould68" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a4a4a"/><stop offset=".45" stop-color="#2a2a2a"/><stop offset="1" stop-color="#111111"/></linearGradient>
+    <clipPath id="clip69"><rect x="435.7" y="180.70000000000002" width="208.6" height="138.6"/></clipPath>
+  </defs>
+  <rect x="410" y="161" width="280" height="210" rx="4" fill="#000" opacity=".16" filter="blur(2px)"/>
+  <rect x="400" y="145" width="280" height="210" rx="4" fill="url(#mould68)"/>
+  <rect x="408.505" y="153.505" width="262.99" height="192.99" fill="none" stroke="#4a4a4a" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="418.9" y="163.9" width="242.2" height="172.2" fill="#fbfaf7"/>
+  <g clip-path="url(#clip69)"><defs><linearGradient id="sky70" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe3ff"/><stop offset="1" stop-color="#eaf6ff"/></linearGradient></defs>
+  <rect x="435.7" y="180.70000000000002" width="208.6" height="138.6" fill="url(#sky70)"/>
+  <circle cx="585.8919999999999" cy="222.28000000000003" r="18.773999999999997" fill="#fff6c9" opacity=".95"/>
+  <path d="M435.7 280.492 Q 487.84999999999997 243.07000000000002 540 272.17600000000004 T 644.3 261.088 V 319.3 H 435.7 Z" fill="#6cbf9f"/>
+  <path d="M435.7 298.51 Q 508.71 266.632 565.0319999999999 294.352 T 644.3 288.808 V 319.3 H 435.7 Z" fill="#2f7d6d"/></g>
+  <rect x="435.7" y="180.70000000000002" width="208.6" height="138.6" fill="none" stroke="#000" stroke-opacity=".12"/>
+  <path d="M418.9 163.9 L 554 163.9 L 418.9 250 Z" fill="#fff" opacity=".12"/><defs>
+    <linearGradient id="mould71" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a4a4a"/><stop offset=".45" stop-color="#2a2a2a"/><stop offset="1" stop-color="#111111"/></linearGradient>
+    <clipPath id="clip72"><rect x="435.7" y="420.7" width="208.6" height="138.6"/></clipPath>
+  </defs>
+  <rect x="410" y="401" width="280" height="210" rx="4" fill="#000" opacity=".16" filter="blur(2px)"/>
+  <rect x="400" y="385" width="280" height="210" rx="4" fill="url(#mould71)"/>
+  <rect x="408.505" y="393.505" width="262.99" height="192.99" fill="none" stroke="#4a4a4a" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="418.9" y="403.9" width="242.2" height="172.2" fill="#fbfaf7"/>
+  <g clip-path="url(#clip72)"><defs><radialGradient id="pt73" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#ffe4ec"/><stop offset="1" stop-color="#ffd0dc"/></radialGradient></defs>
+  <rect x="435.7" y="420.7" width="208.6" height="138.6" fill="url(#pt73)"/>
+  <circle cx="510.796" cy="478.912" r="22.945999999999998" fill="#6b3f2a"/>
+  <path d="M460.73199999999997 559.3 Q 510.796 490 556.688 559.3 Z" fill="#cf0f47"/>
+  <circle cx="571.29" cy="484.456" r="20.86" fill="#3b2418"/>
+  <path d="M527.484 559.3 Q 571.29 498.316 619.268 559.3 Z" fill="#1f1f1f"/>
+  <path d="M540 442.876 c -10 -14 -32 -4 -20 12 l 20 18 l 20 -18 c 12 -16 -10 -26 -20 -12 z" fill="#ff0b55" opacity=".85"/></g>
+  <rect x="435.7" y="420.7" width="208.6" height="138.6" fill="none" stroke="#000" stroke-opacity=".12"/>
+  <path d="M418.9 403.9 L 554 403.9 L 418.9 490 Z" fill="#fff" opacity=".12"/></svg>

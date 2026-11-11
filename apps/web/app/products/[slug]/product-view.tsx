@@ -200,7 +200,7 @@ export function ProductView({ product, initialSku, customizable, requiresDesign 
             <Palette className="hidden h-6 w-6 shrink-0 text-primary sm:block" aria-hidden="true" />
             <div className="flex-1 text-sm">
               <p className="font-semibold">Make it yours</p>
-              <p className="text-muted-foreground">Choose colours, add text or your own artwork, and see it live.</p>
+              <p className="text-muted-foreground">Add your photo, names and dates, pick the frame and flowers, and see it live.</p>
             </div>
             <Link
               href={`/customize/${product.id}?v=${encodeURIComponent(variant.sku)}`}

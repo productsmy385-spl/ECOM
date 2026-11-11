@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img"><rect width="800" height="800" fill="#fff7f2"/><rect y="560" width="800" height="240" fill="#ead9cf"/><rect y="560" width="800" height="6" fill="#d9c3b6"/>
+     <ellipse cx="400" cy="610" rx="230" ry="22" fill="#000" opacity=".12"/>
+     <defs>
+    <linearGradient id="mould10" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a4a4a"/><stop offset=".45" stop-color="#2a2a2a"/><stop offset="1" stop-color="#111111"/></linearGradient>
+    <clipPath id="clip11"><rect x="268" y="218" width="264" height="364"/></clipPath>
+  </defs>
+  <rect x="210" y="166" width="400" height="500" rx="4" fill="#000" opacity=".16" filter="blur(2px)"/>
+  <rect x="200" y="150" width="400" height="500" rx="4" fill="url(#mould10)"/>
+  <rect x="216.2" y="166.2" width="367.6" height="467.6" fill="none" stroke="#4a4a4a" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="236" y="186" width="328" height="428" fill="#fbfaf7"/>
+  <g clip-path="url(#clip11)"><defs><linearGradient id="sky12" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8c8ff"/><stop offset="1" stop-color="#f3eeff"/></linearGradient></defs>
+  <rect x="268" y="218" width="264" height="364" fill="url(#sky12)"/>
+  <circle cx="458.08" cy="327.2" r="23.759999999999998" fill="#fff6c9" opacity=".95"/>
+  <path d="M268 480.08 Q 334 381.8 400 458.24 T 532 429.12 V 582 H 268 Z" fill="#7aa2ff"/>
+  <path d="M268 527.4 Q 360.4 443.68 431.68 516.48 T 532 501.92 V 582 H 268 Z" fill="#1d4ed8"/></g>
+  <rect x="268" y="218" width="264" height="364" fill="none" stroke="#000" stroke-opacity=".12"/>
+  <path d="M236 186 L 420 186 L 236 400 Z" fill="#fff" opacity=".12"/></svg>

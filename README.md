@@ -1,6 +1,6 @@
 # Crimsonne: custom-design e-commerce platform
 
-The storefront and admin dashboard for a single business selling cosmetics, eyewear and accessories, with product customization. "Crimsonne" is a placeholder brand name, set through `NEXT_PUBLIC_BRAND_NAME`.
+The storefront and admin dashboard for a single business selling custom-design photo frames and handmade resin (glue-art) frames, which customers design themselves. "Crimsonne" is a placeholder brand name, set through `NEXT_PUBLIC_BRAND_NAME`.
 
 **Stack:** Next.js 16 · React 19 · TypeScript · Tailwind v4 · PostgreSQL 17 + Drizzle · Clerk · pnpm workspaces · Railway.
 
@@ -28,7 +28,7 @@ pnpm dev                      # web :3000 + admin :3001
 
 Sign in at http://localhost:3001/admin/login through Clerk with the `SEED_SUPERADMIN_EMAIL` address. Your first sign-in links that Clerk account to the seeded Super Admin record, and it only links when the email is verified.
 
-Optional, **development only**: load a demo catalog (12 products, fictional brands, no images) so the storefront has something to show. This is refused in production.
+Optional, **development only**: load a demo catalogue of 14 frame products (fictional brands, original SVG artwork from `scripts/generate-demo-art.mjs`). It is refused on non-local databases.
 
 ```bash
 pnpm --filter @ecom/db seed:dev-catalog            # add

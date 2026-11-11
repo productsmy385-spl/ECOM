@@ -27,7 +27,7 @@ export async function SiteFooter() {
           <Link href="/" className="font-display text-2xl font-bold">
             {brand.name}
           </Link>
-          <p className="mt-3 max-w-xs text-sm text-white/70">Beauty, eyewear and accessories, with personalisation built in.</p>
+          <p className="mt-3 max-w-xs text-sm text-white/70">Custom photo frames and handmade resin art frames, designed by you.</p>
         </div>
         <nav aria-label="Shop">
           <h2 className="text-sm font-semibold uppercase tracking-[0.09em]">Shop</h2>

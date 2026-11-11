@@ -29,15 +29,17 @@ if (!url) {
 }
 const { db, pool } = createDb(url, 2);
 
+// Custom-design photo frames and resin (glue-art) frames (OPEN_QUESTIONS #19).
+// Migration 0005 adds the same rows to existing databases.
 const CATEGORIES = [
-  { name: "Cosmetics", slug: "cosmetics", isCustomizable: false },
-  { name: "Customized Cosmetics", slug: "customized-cosmetics", isCustomizable: true },
-  { name: "Eyeglass Frames", slug: "eyeglass-frames", isCustomizable: true },
-  { name: "Sunglasses", slug: "sunglasses", isCustomizable: true },
-  { name: "Designer Frames", slug: "designer-frames", isCustomizable: true },
-  { name: "Premium Frames", slug: "premium-frames", isCustomizable: true },
-  { name: "Accessories", slug: "accessories", isCustomizable: false },
-  { name: "Customized Accessories", slug: "customized-accessories", isCustomizable: true },
+  { name: "Photo Frames", slug: "photo-frames", isCustomizable: true },
+  { name: "Custom Photo Frames", slug: "custom-photo-frames", isCustomizable: true },
+  { name: "Resin Art Frames", slug: "resin-art-frames", isCustomizable: true },
+  { name: "Collage Frames", slug: "collage-frames", isCustomizable: true },
+  { name: "Name & Quote Frames", slug: "name-quote-frames", isCustomizable: true },
+  { name: "Wall Frames", slug: "wall-frames", isCustomizable: false },
+  { name: "Table-top Frames", slug: "table-top-frames", isCustomizable: false },
+  { name: "Gift Frames", slug: "gift-frames", isCustomizable: true },
 ];
 
 const SETTINGS: { key: string; value: unknown; description: string }[] = [

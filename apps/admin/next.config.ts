@@ -23,6 +23,12 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   transpilePackages: ["@ecom/auth", "@ecom/db", "@ecom/rbac", "@ecom/services", "@ecom/ui", "@ecom/validation"],
   poweredByHeader: false,
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "ik.imagekit.io" }],
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
   // The admin only exists under /admin. Anything else on this domain (e.g. the
   // bare domain, or /login) is sent there instead of a 404.
   async redirects() {

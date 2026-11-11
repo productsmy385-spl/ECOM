@@ -17,7 +17,7 @@ import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Trash2, Wand2 } from
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { COSMETICS_PRESET, EYEWEAR_PRESET } from "./presets";
+import { PHOTO_FRAME_PRESET, RESIN_FRAME_PRESET } from "./presets";
 
 type Choice = { value: string; label: string; hex?: string; priceDelta: number };
 type Cfg = Record<string, unknown> & { choices?: Choice[]; showWhen?: { key: string; values: string[] } };
@@ -185,8 +185,8 @@ export function OptionsBuilder({ product, initial, canEdit, webUrl }: Props) {
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">Start from a preset or add options one by one. Customers see them on the product&apos;s “Customise” page.</p>
           {canEdit && (
             <div className="mt-5 flex flex-wrap justify-center gap-2">
-              <Button variant="outline" onClick={() => applyPreset(EYEWEAR_PRESET)}>Eyewear preset</Button>
-              <Button variant="outline" onClick={() => applyPreset(COSMETICS_PRESET)}>Cosmetics preset</Button>
+              <Button variant="outline" onClick={() => applyPreset(PHOTO_FRAME_PRESET)}>Photo frame preset</Button>
+              <Button variant="outline" onClick={() => applyPreset(RESIN_FRAME_PRESET)}>Resin frame preset</Button>
             </div>
           )}
         </Card>
@@ -214,7 +214,7 @@ export function OptionsBuilder({ product, initial, canEdit, webUrl }: Props) {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Input label="Label" value={o.label} onChange={(e) => patch(i, { label: e.target.value })} />
                 <Input label="Key" hint="Stable id stored in designs." value={o.key} onChange={(e) => patch(i, { key: slug(e.target.value) })} />
-                <Input label="Group (optional)" placeholder="Frame, Lenses…" value={o.groupName ?? ""} onChange={(e) => patch(i, { groupName: e.target.value })} />
+                <Input label="Group (optional)" placeholder="Frame, Resin, Personalise…" value={o.groupName ?? ""} onChange={(e) => patch(i, { groupName: e.target.value })} />
                 <Input label="Help text (optional)" value={o.helpText ?? ""} onChange={(e) => patch(i, { helpText: e.target.value })} />
               </div>
               <div className="flex flex-wrap gap-5">
@@ -258,18 +258,18 @@ export function OptionsBuilder({ product, initial, canEdit, webUrl }: Props) {
             <ConfirmDialog
               title="Replace with a preset?"
               description="Your current (unsaved) options will be replaced. Nothing changes until you save."
-              confirmLabel="Use eyewear preset"
-              onConfirm={() => applyPreset(EYEWEAR_PRESET)}
-              trigger={<Button variant="ghost">Eyewear preset</Button>}
+              confirmLabel="Use photo frame preset"
+              onConfirm={() => applyPreset(PHOTO_FRAME_PRESET)}
+              trigger={<Button variant="ghost">Photo frame preset</Button>}
             />
           )}
           {options.length > 0 && (
             <ConfirmDialog
               title="Replace with a preset?"
               description="Your current (unsaved) options will be replaced. Nothing changes until you save."
-              confirmLabel="Use cosmetics preset"
-              onConfirm={() => applyPreset(COSMETICS_PRESET)}
-              trigger={<Button variant="ghost">Cosmetics preset</Button>}
+              confirmLabel="Use resin frame preset"
+              onConfirm={() => applyPreset(RESIN_FRAME_PRESET)}
+              trigger={<Button variant="ghost">Resin frame preset</Button>}
             />
           )}
         </Card>

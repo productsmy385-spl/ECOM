@@ -421,7 +421,7 @@ export function ProductEditor({ product, can, webUrl }: Props) {
                 <Plus className="h-4 w-4" /> Add
               </Button>
             </div>
-            {attributes.fields.length === 0 && <p className="text-sm text-muted-foreground">No specifications yet, e.g. “Lens width: 54 mm”.</p>}
+            {attributes.fields.length === 0 && <p className="text-sm text-muted-foreground">No specifications yet, e.g. “Frame size: 8 × 10 in”.</p>}
             {attributes.fields.map((f, i) => (
               <div key={f.id} className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto_auto]">
                 <Input label="Group" placeholder="Dimensions" {...register(`attributes.${i}.groupName`)} />

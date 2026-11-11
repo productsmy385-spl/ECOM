@@ -11,8 +11,8 @@ export default function AboutPage() {
       <h1 className="font-display text-3xl font-bold">About {brand.name}</h1>
       <div className="mt-6 space-y-4 text-muted-foreground">
         <p>
-          {brand.name} sells cosmetics, eyeglass frames, sunglasses and accessories, and lets you personalise many of them:
-          frame colours and engraving, cosmetic shades, labels and gift packaging.
+          {brand.name} makes custom photo frames, collage frames and handmade resin (glue-art) frames, and lets you design them yourself:
+          your photos, names and dates, frame colours, sizes, pressed flowers and resin finishes, and gift packaging.
         </p>
         <p>
           Every price in the store includes GST. Questions about a product or an order? We&apos;re happy to help.

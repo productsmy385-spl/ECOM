@@ -97,7 +97,7 @@ export function SearchBox({ className, autoFocus }: { className?: string; autoFo
           aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
           autoComplete="off"
           autoFocus={autoFocus}
-          placeholder="Search frames, lipsticks, brands…"
+          placeholder="Search photo frames, resin frames, collages…"
           value={q}
           onChange={(e) => {
             setQ(e.target.value);

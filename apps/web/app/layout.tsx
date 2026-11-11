@@ -17,8 +17,8 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "sw
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.WEB_URL ?? "http://localhost:3000"),
-  title: { default: `${brand.name}: Cosmetics, Eyewear & Custom Designs`, template: `%s | ${brand.name}` },
-  description: "Shop cosmetics, eyeglass frames, sunglasses and accessories, or design your own.",
+  title: { default: `${brand.name}: Custom Photo Frames & Resin Art Frames`, template: `%s | ${brand.name}` },
+  description: "Custom photo frames, collage frames and handmade resin (glue-art) frames. Upload your photo, add names and design your own.",
   openGraph: { siteName: brand.name, type: "website", locale: "en_IN" },
 };
 

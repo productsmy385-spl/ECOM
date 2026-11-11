@@ -1,6 +1,6 @@
 import type { ProductCard } from "@ecom/services";
 import { formatPaise } from "@ecom/ui/format";
-import { BadgePercent, Glasses, Palette, Quote, ShieldCheck, Sparkles, Truck } from "lucide-react";
+import { BadgePercent, Flower2, Frame, LayoutGrid, Palette, Quote, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Carousel } from "@/components/carousel";
@@ -19,9 +19,10 @@ type Slide = { key: string; eyebrow?: string; title: React.ReactNode; text: stri
 
 function categoryIcon(name: string) {
   const n = name.toLowerCase();
-  if (/frame|glass|sun|eye/.test(n)) return Glasses;
-  if (/custom/.test(n)) return Palette;
-  return Sparkles;
+  if (/resin|glu/.test(n)) return Flower2;
+  if (/collage/.test(n)) return LayoutGrid;
+  if (/custom|name|gift/.test(n)) return Palette;
+  return Frame;
 }
 
 /** Hero slides: admin banners when there are any, otherwise built from the live catalogue. */
@@ -40,13 +41,13 @@ function heroSlides(data: Awaited<ReturnType<typeof homeData>>): Slide[] {
   return [
     {
       key: "yours",
-      eyebrow: "Beauty · Eyewear · Accessories",
+      eyebrow: "Photo frames · Resin art · Custom designs",
       title: (
         <>
           Made to be yours. <span className="text-primary">Designed by you.</span>
         </>
       ),
-      text: "Frames, sunglasses and cosmetics you can personalise: colours, engraving, labels and more.",
+      text: "Custom photo frames and handmade resin art frames, designed by you: your photos, names, flowers and colours.",
       cta: { href: "/shop", label: "Shop collection" },
       image: img(data.trending),
       hint: "Our collection",
@@ -55,7 +56,7 @@ function heroSlides(data: Awaited<ReturnType<typeof homeData>>): Slide[] {
       key: "custom",
       eyebrow: "Personalisation studio",
       title: "Design your own, see it live",
-      text: "Pick colours, add your name or artwork, and preview every change before you order.",
+      text: "Upload your photo, add names and dates, choose the frame and see it live before you order.",
       cta: { href: "/shop?tag=custom", label: "Start designing" },
       image: img(data.customizable),
       hint: "Design your own",
@@ -64,7 +65,7 @@ function heroSlides(data: Awaited<ReturnType<typeof homeData>>): Slide[] {
       key: "new",
       eyebrow: "Just landed",
       title: "New arrivals, fresh every week",
-      text: "The latest frames, sunglasses and lipsticks, first.",
+      text: "The latest photo, collage and resin frames, first.",
       cta: { href: "/shop?tag=new", label: "Shop new arrivals" },
       image: img(data.newArrivals),
       hint: "New arrivals",
@@ -190,7 +191,7 @@ export default async function HomePage() {
                 <Image src={ik(data.customizable[0].imageUrl, 900)} alt="" fill sizes="(min-width: 768px) 45vw, 90vw" className="object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center text-primary">
-                  <Palette className="h-20 w-20" strokeWidth={1.1} aria-hidden="true" />
+                  <Frame className="h-20 w-20" strokeWidth={1.1} aria-hidden="true" />
                 </div>
               )}
             </div>
@@ -199,7 +200,7 @@ export default async function HomePage() {
             <h2 className="font-display text-3xl font-semibold leading-tight tracking-wide sm:text-5xl">
               {promo ? promo.title : "Make it unmistakably yours"}
             </h2>
-            <p className="mt-4 text-lg text-foreground/75">{promo ? promo.subtitle : "Engrave a name, choose your colours or upload artwork. Our designers check every custom piece before it's made."}</p>
+            <p className="mt-4 text-lg text-foreground/75">{promo ? promo.subtitle : "Upload your photos, pick flowers for resin, add names and dates. Our designers check every custom piece before it's made."}</p>
             {promo?.endsAt && <Countdown endsAt={promo.endsAt.toISOString()} />}
             <Link href={promo?.ctaHref ?? "/shop?tag=custom"} className="btn-pill btn-pill-dark mt-6">
               {promo?.ctaLabel ?? "Start designing"}
@@ -259,7 +260,7 @@ export default async function HomePage() {
       )}
 
       {data.customizable.length > 0 && (
-        <ProductRail id="custom" title="Make it yours" subtitle="Customise colours, engraving and labels" href="/shop?tag=custom" products={data.customizable} className="bg-blush-50" />
+        <ProductRail id="custom" title="Make it yours" subtitle="Your photos, names, flowers and colours" href="/shop?tag=custom" products={data.customizable} className="bg-blush-50" />
       )}
 
       {/* --------------------------------------------------------- customer reviews */}

@@ -1,4 +1,4 @@
-import { Glasses, Palette, Sparkles } from "lucide-react";
+import { Flower2, Frame, Palette } from "lucide-react";
 import Image from "next/image";
 import { cn, ik } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ export function ProductImage({
 }) {
   if (!src) {
     const h = (hint ?? alt).toLowerCase();
-    const Icon = /frame|glass|sun|lens|eye/.test(h) ? Glasses : /custom|design|personal/.test(h) ? Palette : Sparkles;
+    const Icon = /resin|glu|flower/.test(h) ? Flower2 : /custom|design|personal|name/.test(h) ? Palette : Frame;
     return (
       <div
         role="img"

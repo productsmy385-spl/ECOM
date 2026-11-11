@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img"><rect width="800" height="800" fill="#fff5f8"/><rect y="580" width="800" height="220" fill="#f7d9e3"/>
+      <defs>
+    <linearGradient id="mould46" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff4d7e"/><stop offset=".45" stop-color="#cf0f47"/><stop offset="1" stop-color="#a80c3a"/></linearGradient>
+    <clipPath id="clip47"><rect x="261.40000000000003" y="211.4" width="277.2" height="337.2"/></clipPath>
+  </defs>
+  <rect x="200" y="156" width="420" height="480" rx="4" fill="#000" opacity=".16" filter="blur(2px)"/>
+  <rect x="190" y="140" width="420" height="480" rx="4" fill="url(#mould46)"/>
+  <rect x="207.01" y="157.01" width="385.98" height="445.98" fill="none" stroke="#ff4d7e" stroke-opacity=".5" stroke-width="2"/>
+  <rect x="227.8" y="177.8" width="344.4" height="404.4" fill="#fbfaf7"/>
+  <g clip-path="url(#clip47)"><defs><radialGradient id="pt48" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#ffe4ec"/><stop offset="1" stop-color="#ffd0dc"/></radialGradient></defs>
+  <rect x="261.40000000000003" y="211.4" width="277.2" height="252.89999999999998" fill="url(#pt48)"/>
+  <circle cx="361.192" cy="317.618" r="30.491999999999997" fill="#6b3f2a"/>
+  <path d="M294.664 464.29999999999995 Q 361.192 337.85 422.176 464.29999999999995 Z" fill="#cf0f47"/>
+  <circle cx="441.58" cy="327.734" r="27.72" fill="#3b2418"/>
+  <path d="M383.368 464.29999999999995 Q 441.58 353.024 505.336 464.29999999999995 Z" fill="#1f1f1f"/>
+  <path d="M400 251.864 c -10 -14 -32 -4 -20 12 l 20 18 l 20 -18 c 12 -16 -10 -26 -20 -12 z" fill="#ff0b55" opacity=".85"/><rect x="261.40000000000003" y="464.29999999999995" width="277.2" height="84.3" fill="#fff"/><text x="400" y="521.624" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="33.72" fill="#cf0f47">Love you, Maa</text></g>
+  <rect x="261.40000000000003" y="211.4" width="277.2" height="337.2" fill="none" stroke="#000" stroke-opacity=".12"/>
+  <path d="M227.8 177.8 L 421 177.8 L 227.8 380 Z" fill="#fff" opacity=".12"/>
+      <rect x="560" y="560" width="150" height="110" rx="8" fill="#cf0f47"/><rect x="625" y="560" width="20" height="110" fill="#ffdede"/><path d="M635 560 c -30 -40 -70 -10 -40 10 z M635 560 c 30 -40 70 -10 40 10 z" fill="#ff0b55"/></svg>
