@@ -14,6 +14,7 @@ import {
   coupons,
   customerDesigns,
   type DbOrTx,
+  deliveries,
   db,
   inventory,
   inventoryMovements,
@@ -45,6 +46,7 @@ import { and, asc, count, desc, eq, gte, ilike, inArray, lt, or, sql, type SQL }
 import { writeAudit } from "./audit";
 import type { ServiceContext } from "./context";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
+import { emailOrderUpdate, notifyStaffWith, notifyUsers, type OrderEmailKind } from "./notifications";
 import { type PaymentGateway, razorpayGateway } from "./razorpay";
 
 const VIEW = ["orders.view", "orders.view_assigned"] as const;
@@ -291,58 +293,94 @@ async function moveStock(conn: DbOrTx, ctx: ServiceContext, orderId: string, ord
 
 // ----------------------------------------------------------- status change
 
+type OrderRow = typeof orders.$inferSelect;
+const EMAIL_ON: Partial<Record<OrderStatusValue, OrderEmailKind>> = { shipped: "shipped", out_for_delivery: "out_for_delivery", delivered: "delivered", cancelled: "cancelled" };
+
+/**
+ * Internal: validates and applies one status move with all its effects.
+ * Callers have already checked the caller's permission and locked the row.
+ * Used by changeOrderStatus (staff) and by deliveries (captains).
+ */
+export async function applyOrderTransition(tx: DbOrTx, ctx: ServiceContext, o: OrderRow, to: OrderStatusValue, note: string | null, visible: boolean) {
+  const id = o.id;
+  const from = o.status as OrderStatusValue;
+  if (!(ORDER_TRANSITIONS[from] ?? []).includes(to)) {
+    throw new ConflictError(`An order that is "${from.replace(/_/g, " ")}" can't move to "${to.replace(/_/g, " ")}".`);
+  }
+  if (to === "design_approved" || (from === "confirmed" && to === "production" && o.requiresDesignReview)) {
+    const pending = await tx
+      .select({ n: count() })
+      .from(orderItems)
+      .leftJoin(customerDesigns, eq(customerDesigns.id, orderItems.designId))
+      .where(and(eq(orderItems.orderId, id), eq(orderItems.requiresDesignReview, true), sql`coalesce(${customerDesigns.status}::text, '') <> 'approved'`));
+    if ((pending[0]?.n ?? 0) > 0) throw new ConflictError("Some designs in this order haven't been approved yet. Approve them in Designs first.");
+  }
+  if (to === "cancelled" && !note) throw new ValidationError("Give a reason for cancelling.", { note: ["Give a reason for cancelling"] });
+
+  const now = new Date();
+  const fulfilled = await isFulfilled(tx, id);
+  const set: Partial<typeof orders.$inferInsert> = { status: to, updatedAt: now };
+
+  if (to === "shipped" && !fulfilled) await moveStock(tx, ctx, id, o.orderNumber, "fulfillment");
+  if (to === "cancelled") {
+    if (!fulfilled) await moveStock(tx, ctx, id, o.orderNumber, "release");
+    set.cancelledAt = now;
+    set.cancelReason = note;
+    const [red] = await tx.delete(couponRedemptions).where(eq(couponRedemptions.orderId, id)).returning();
+    if (red) await tx.update(coupons).set({ usedCount: sql`greatest(${coupons.usedCount} - 1, 0)` }).where(eq(coupons.id, red.couponId));
+    if (o.paymentProvider === "cod" && o.paymentStatus === "created") {
+      await tx.update(payments).set({ status: "failed", failureReason: "Order cancelled before delivery", updatedAt: now }).where(eq(payments.orderId, id));
+    }
+    await tx.update(deliveries).set({ status: "failed", failureReason: "Order cancelled", updatedAt: now }).where(and(eq(deliveries.orderId, id), sql`${deliveries.status} <> 'delivered'`));
+  }
+  if (to === "delivered") {
+    set.deliveredAt = now;
+    if (o.paymentProvider === "cod" && o.paymentStatus === "created") {
+      // Cash collected on delivery.
+      set.paymentStatus = "captured";
+      await tx.update(payments).set({ status: "captured", capturedAt: now, verifiedAt: now, method: "cash", updatedAt: now }).where(eq(payments.orderId, id));
+    }
+  }
+  if (to === "returned") await moveStock(tx, ctx, id, o.orderNumber, "return");
+  if (to === "packed") {
+    // Packed orders get a delivery to assign to a captain.
+    const created = await tx.insert(deliveries).values({ orderId: id }).onConflictDoNothing().returning({ id: deliveries.id });
+    if (created.length) {
+      await notifyStaffWith(tx, ["deliveries.assign"], { type: "delivery.unassigned", title: `${o.orderNumber} is packed`, body: "Assign a delivery captain.", link: `/deliveries/${created[0]!.id}` }, ctx.actor.userId);
+    }
+  }
+
+  await tx.update(orders).set(set).where(eq(orders.id, id));
+  await tx.insert(orderStatusHistory).values({ orderId: id, fromStatus: from, toStatus: to, actorId: ctx.actor.userId, note, isCustomerVisible: visible });
+  await writeAudit(tx, ctx, { action: "order.status", entityType: "order", entityId: id, before: { status: from }, after: { status: to, note } });
+}
+
+/** After commit: tell the customer by email (only for customer-visible updates). */
+export async function emailCustomerAboutStatus(orderId: string, to: OrderStatusValue, note: string | null) {
+  const kind = EMAIL_ON[to];
+  if (!kind) return;
+  const [o] = await db
+    .select({ orderNumber: orders.orderNumber, total: orders.totalAmount, guestEmail: orders.guestEmail, email: users.email, customerId: orders.customerId })
+    .from(orders)
+    .leftJoin(users, eq(users.id, orders.customerId))
+    .where(eq(orders.id, orderId));
+  if (!o) return;
+  await emailOrderUpdate(kind, { orderNumber: o.orderNumber, to: o.email ?? o.guestEmail, total: o.total, link: o.customerId ? `/orders/${o.orderNumber}` : null, note });
+}
+
 export async function changeOrderStatus(ctx: ServiceContext, id: string, raw: unknown): Promise<AdminOrderDetail> {
   const input = orderStatusChangeSchema.parse(raw);
   const needed = input.status === "cancelled" ? "orders.cancel" : "orders.update";
   requirePermission(ctx.actor, needed);
   if (!canAny(ctx.actor, [...VIEW])) throw new AuthorizationError();
 
-  return db.transaction(async (tx) => {
+  const detail = await db.transaction(async (tx) => {
     const o = await loadOrderRow(tx, ctx.actor, id, true);
-    const from = o.status as OrderStatusValue;
-    if (!(ORDER_TRANSITIONS[from] ?? []).includes(input.status)) {
-      throw new ConflictError(`An order that is "${from.replace(/_/g, " ")}" can't move to "${input.status.replace(/_/g, " ")}".`);
-    }
-    if (input.status === "design_approved" || (from === "confirmed" && input.status === "production" && o.requiresDesignReview)) {
-      const pending = await tx
-        .select({ n: count() })
-        .from(orderItems)
-        .leftJoin(customerDesigns, eq(customerDesigns.id, orderItems.designId))
-        .where(and(eq(orderItems.orderId, id), eq(orderItems.requiresDesignReview, true), sql`coalesce(${customerDesigns.status}::text, '') <> 'approved'`));
-      if ((pending[0]?.n ?? 0) > 0) throw new ConflictError("Some designs in this order haven't been approved yet. Approve them in Designs first.");
-    }
-    if (input.status === "cancelled" && !input.note) throw new ValidationError("Give a reason for cancelling.", { note: ["Give a reason for cancelling"] });
-
-    const now = new Date();
-    const fulfilled = await isFulfilled(tx, id);
-    const set: Partial<typeof orders.$inferInsert> = { status: input.status, updatedAt: now };
-
-    if (input.status === "shipped" && !fulfilled) await moveStock(tx, ctx, id, o.orderNumber, "fulfillment");
-    if (input.status === "cancelled") {
-      if (!fulfilled) await moveStock(tx, ctx, id, o.orderNumber, "release");
-      set.cancelledAt = now;
-      set.cancelReason = input.note ?? null;
-      const [red] = await tx.delete(couponRedemptions).where(eq(couponRedemptions.orderId, id)).returning();
-      if (red) await tx.update(coupons).set({ usedCount: sql`greatest(${coupons.usedCount} - 1, 0)` }).where(eq(coupons.id, red.couponId));
-      if (o.paymentProvider === "cod" && o.paymentStatus === "created") {
-        await tx.update(payments).set({ status: "failed", failureReason: "Order cancelled before delivery", updatedAt: now }).where(eq(payments.orderId, id));
-      }
-    }
-    if (input.status === "delivered") {
-      set.deliveredAt = now;
-      if (o.paymentProvider === "cod" && o.paymentStatus === "created") {
-        // Cash collected on delivery.
-        set.paymentStatus = "captured";
-        await tx.update(payments).set({ status: "captured", capturedAt: now, verifiedAt: now, method: "cash", updatedAt: now }).where(eq(payments.orderId, id));
-      }
-    }
-    if (input.status === "returned") await moveStock(tx, ctx, id, o.orderNumber, "return");
-
-    await tx.update(orders).set(set).where(eq(orders.id, id));
-    await tx.insert(orderStatusHistory).values({ orderId: id, fromStatus: from, toStatus: input.status, actorId: ctx.actor.userId, note: input.note ?? null, isCustomerVisible: input.notifyCustomer });
-    await writeAudit(tx, ctx, { action: "order.status", entityType: "order", entityId: id, before: { status: from }, after: { status: input.status, note: input.note ?? null } });
+    await applyOrderTransition(tx, ctx, o, input.status, input.note ?? null, input.notifyCustomer);
     return buildDetail(tx, ctx.actor, id);
   });
+  if (input.notifyCustomer) await emailCustomerAboutStatus(id, input.status, input.note ?? null);
+  return detail;
 }
 
 export async function addOrderNote(ctx: ServiceContext, id: string, raw: unknown) {
@@ -377,6 +415,9 @@ export async function assignOrder(ctx: ServiceContext, id: string, raw: unknown)
       if (!ok) throw new ValidationError("That person can't take orders.", { staffId: ["Not an order handler"] });
     }
     await tx.update(orders).set({ assignedStaffId: staffId, updatedAt: new Date() }).where(eq(orders.id, id));
+    if (staffId && staffId !== ctx.actor.userId) {
+      await notifyUsers(tx, [staffId], { type: "order.assigned", title: `${o.orderNumber} was assigned to you`, link: `/orders/${id}` });
+    }
     await writeAudit(tx, ctx, { action: "order.assign", entityType: "order", entityId: id, before: { staffId: o.assignedStaffId }, after: { staffId } });
     return buildDetail(tx, ctx.actor, id);
   });

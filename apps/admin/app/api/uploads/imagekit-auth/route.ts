@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
  * leaves the server). ImageKit signature = HMAC-SHA1(privateKey, token + expire).
  */
 export const GET = apiRoute(async ({ ctx }) => {
-  if (!canAny(ctx.actor, ["products.create", "products.update", "categories.manage"])) {
+  // Catalog editors, designers (artwork) and delivery captains (proof photos).
+  if (!canAny(ctx.actor, ["products.create", "products.update", "categories.manage", "designs.create", "deliveries.update", "deliveries.update_assigned"])) {
     throw new AuthorizationError();
   }
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;

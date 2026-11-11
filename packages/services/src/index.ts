@@ -36,3 +36,5 @@ export * from "./orders-admin";
 export * from "./customers-admin";
 export * from "./inventory-admin";
 export * from "./dashboard";
+export * from "./notifications";
+export * from "./deliveries";

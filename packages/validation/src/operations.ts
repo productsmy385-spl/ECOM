@@ -144,3 +144,29 @@ export const purchaseSchema = z.object({
     .max(200),
 });
 export const purchaseActionSchema = z.object({ action: z.enum(["order", "receive", "cancel"]) });
+
+// -------------------------------------------------------------- deliveries
+
+export const DELIVERY_STATUSES = ["unassigned", "assigned", "picked_up", "in_transit", "out_for_delivery", "delivered", "failed"] as const;
+
+export const deliveryListQuery = z.object({
+  status: z.enum(DELIVERY_STATUSES).optional(),
+  /** "open" = not delivered and not failed. */
+  open: z.coerce.boolean().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(30),
+});
+
+export const deliveryAssignSchema = z.object({ captainId: uuid.nullable(), instructions: optionalText(500) });
+
+const coord = z.coerce.number().min(-180).max(180).optional();
+export const deliveryUpdateSchema = z.object({
+  action: z.enum(["picked_up", "out_for_delivery", "delivered", "failed", "reattempt"]),
+  note: optionalText(500),
+  /** Photo proof uploaded to ImageKit (optional). */
+  proofUrl: z.url().refine((u) => /^https:\/\/ik\.imagekit\.io\//.test(u), "Upload the photo first").optional(),
+  /** COD orders: the captain confirms the cash was collected. */
+  codCollected: z.boolean().optional(),
+  latitude: coord,
+  longitude: coord,
+});

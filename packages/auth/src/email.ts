@@ -1,7 +1,7 @@
 /**
  * Minimal transactional email sender (Resend REST API, no SDK dependency).
  * Without RESEND_API_KEY the message is logged instead — dev/test only.
- * Phase 8 moves this behind the notifications service + BullMQ queue.
+ * Order emails are sent by services/src/notifications.ts after commits.
  */
 export interface EmailMessage {
   to: string;
@@ -46,7 +46,7 @@ export function simpleEmail(title: string, body: string, cta?: { label: string; 
     ? `<p><a href="${esc(cta.url)}" style="display:inline-block;background:#CF0F47;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">${esc(cta.label)}</a></p>`
     : "";
   return {
-    html: `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;color:#000"><h2 style="color:#CF0F47">${brand}</h2><h3>${esc(title)}</h3><p>${esc(body)}</p>${button}</div>`,
+    html: `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;color:#000"><h2 style="color:#CF0F47">${brand}</h2><h3>${esc(title)}</h3>${body.split(/\n{2,}/).map((p) => `<p>${esc(p)}</p>`).join("")}${button}</div>`,
     text: `${title}\n\n${body}${cta ? `\n\n${cta.label}: ${cta.url}` : ""}`,
   };
 }

@@ -45,6 +45,7 @@ import { and, asc, count, desc, eq, inArray, isNull, ne, sql, type SQL } from "d
 import { writeAudit } from "./audit";
 import type { ServiceContext } from "./context";
 import { AuthorizationError, ConflictError, NotFoundError, ValidationError } from "./errors";
+import { notifyStaffWith, notifyUsers } from "./notifications";
 
 const MAX_DESIGNS_PER_OWNER = 50;
 const MAX_VERSIONS = 100;
@@ -484,6 +485,7 @@ export async function submitDesign(owner: DesignOwner, designId: string): Promis
     const now = new Date();
     if (data.product.requiresDesignReview) {
       await tx.update(customerDesigns).set({ status: "submitted", submittedAt: now }).where(eq(customerDesigns.id, designId));
+      await notifyStaffWith(tx, ["designs.assign"], { type: "design.submitted", title: `New design to review: ${data.product.name}`, body: d.name, link: `/designs/${designId}` });
     } else {
       await tx.update(customerDesigns).set({ status: "approved", submittedAt: now, approvedAt: now }).where(eq(customerDesigns.id, designId));
       await tx.insert(designApprovals).values({
@@ -684,6 +686,9 @@ export async function assignDesigner(ctx: ServiceContext, designId: string, raw:
       before: { designerId: d.assignedDesignerId, status: d.status },
       after: { designerId, status },
     });
+    if (designerId && designerId !== ctx.actor.userId) {
+      await notifyUsers(tx, [designerId], { type: "design.assigned", title: "A design was assigned to you", body: d.name, link: `/designs/${designId}` });
+    }
     return { id: designId, status, assignedDesignerId: designerId };
   });
 }

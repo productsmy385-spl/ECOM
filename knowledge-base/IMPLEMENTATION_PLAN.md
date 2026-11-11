@@ -101,8 +101,22 @@ Authentication moved from Better Auth to Clerk at the user's request (OPEN_QUEST
 - ✅ **Tests.** 123 passing (8 new operations tests). Browser/API check against a production build: 28/28.
 - 🟡 **Next.** Customer-facing invoice download and order emails (Phase 8, with Resend). Date-range filters on the dashboard (Phase 9 reports).
 
-## Phase 8: Workspaces ⬜
-Designer, manager, staff and delivery captain workspaces (mobile-first, maps, proof upload). Notifications (in-app, email, FCM).
+## Phase 8: Workspaces, deliveries and notifications ✅ (2026-11-11)
+- ✅ **Deliveries.**
+  - Created automatically when an order is packed; managers are alerted.
+  - Managers assign or reassign a captain (assignment history kept) and can reattempt failed deliveries.
+  - Captains see only their own deliveries.
+  - Captain flow: picked up (order → shipped, stock leaves) → out for delivery → delivered (COD must be confirmed as collected; optional ImageKit proof photo; best-effort GPS in the log) or failed (reason required; managers alerted).
+  - Order transitions reuse the order workflow (`applyOrderTransition`), so stock and payment effects are identical.
+- ✅ **Captain UI.** Phone-first cards, Call and Directions (Google Maps link, no API key needed), and big action buttons.
+- ✅ **My work** (`/workspace`) shows every staff member's own queues: deliveries, assigned orders, assigned designs, designs to assign, low stock. It is the landing page for roles without a dashboard, such as captains.
+- ✅ **Notifications.**
+  - In-app bell in the admin header: unread badge, refreshes each minute, mark read or all read.
+  - Staff hear about: new orders (COD on placement, online once paid), packed orders needing a captain, failed deliveries, designs submitted for review, and assignments (orders, designs, deliveries). You're never notified about your own action.
+- ✅ **Customer emails** via Resend: order placed, payment received, shipped, out for delivery, delivered, cancelled. Sent after commit and never blocking. Without `RESEND_API_KEY` they're logged.
+- ✅ **Uploads.** Upload signing is now also allowed for designers and delivery captains.
+- ✅ **Tests.** 126 passing (3 new delivery and notification tests). Production-build API and page check: 20/20 real checks (the 21st asserted a self-notification, which is correctly suppressed).
+- 🟡 **Not done.** FCM push: `push_tokens` exists but there are no Firebase keys. BullMQ queue: emails are sent inline after commit. Live map tracking.
 
 ## Phase 9: Reports ⬜
 Sales, revenue, product, category, customer, inventory, payment, refund, delivery and staff reports. CSV, XLSX and PDF export, permission-gated.

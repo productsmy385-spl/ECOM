@@ -2,12 +2,12 @@
 
 import { cn } from "@/lib/utils";
 import { Maximize2, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
+import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 import { useTheme } from "next-themes";
 import { useShell } from "./shell-context";
 
-// Global search and the notifications bell arrive with their modules
-// (Phase 7 search, Phase 8 notifications) — no placeholder controls until then.
+// Notifications bell (Phase 8). Global search arrives with reports (Phase 9).
 export function Header() {
   const { isCollapsed, setOpen, toggleCollapsed } = useShell();
   const { resolvedTheme, setTheme } = useTheme();
@@ -52,6 +52,8 @@ export function Header() {
           >
             <Maximize2 className="h-4 w-4" />
           </button>
+
+          <NotificationBell className={actionButton} />
 
           {/* Both icons render on the server; CSS picks one so markup matches on hydration */}
           <button

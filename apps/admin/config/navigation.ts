@@ -1,6 +1,6 @@
 import type { Permission } from "@ecom/rbac";
 import type { LucideIcon } from "lucide-react";
-import { Boxes, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users } from "lucide-react";
+import { Boxes, ClipboardList, CreditCard, Factory, FolderTree, KeyRound, LayoutDashboard, Package, Palette, ScrollText, Settings, ShieldCheck, ShoppingBag, Tags, TicketPercent, Truck, UserRound, Users, Bike } from "lucide-react";
 
 export interface NavItem {
   title: string;
@@ -26,7 +26,10 @@ export interface NavGroup {
 export const navigation: NavGroup[] = [
   {
     label: "Overview",
-    items: [{ title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, anyOf: ["dashboard.view"] }],
+    items: [
+      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, anyOf: ["dashboard.view"] },
+      { title: "My work", href: "/workspace", icon: ClipboardList },
+    ],
   },
   {
     label: "Sales",
@@ -48,6 +51,7 @@ export const navigation: NavGroup[] = [
     label: "Operations",
     items: [
       { title: "Designs", href: "/designs", icon: Palette, anyOf: ["designs.view", "designs.view_assigned"] },
+      { title: "Deliveries", href: "/deliveries", icon: Bike, anyOf: ["deliveries.view", "deliveries.view_assigned"] },
       { title: "Inventory", href: "/inventory", icon: Boxes, anyOf: ["inventory.view"] },
       { title: "Purchases", href: "/purchases", icon: Truck, anyOf: ["inventory.view"] },
       { title: "Suppliers", href: "/suppliers", icon: Factory, anyOf: ["inventory.view"] },

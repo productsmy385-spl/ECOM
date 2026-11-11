@@ -34,6 +34,7 @@ import { and, asc, desc, eq, isNull, lt, sql } from "drizzle-orm";
 import { clearCartLines, _findCartForCheckout as findCart, loadCartLines, loadUsableCoupon, type Shopper, type UsableCoupon } from "./cart";
 import { ConflictError, NotFoundError, uniqueViolation, ValidationError } from "./errors";
 import { type PaymentGateway, razorpayGateway, verifyRazorpayWebhook } from "./razorpay";
+import { emailOrderUpdate, notifyStaffWith } from "./notifications";
 import { getCheckoutSettings } from "./settings";
 
 type OrderStatus = (typeof orders.$inferSelect)["status"];
@@ -272,8 +273,36 @@ export async function placeOrder(
       result.payment = null;
       result.paymentError = (err as Error).message;
     }
+  } else {
+    // Cash on delivery is confirmed now; online orders announce themselves once paid.
+    await announceOrder(placed.order.id, "placed", placed.orderToken);
   }
   return result;
+}
+
+/**
+ * After an order is confirmed (COD placed, or online payment received): alert
+ * order staff in-app and email the customer. Never throws.
+ */
+export async function announceOrder(orderId: string, kind: "placed" | "paid", guestToken?: string) {
+  try {
+    const [o] = await db
+      .select({ id: orders.id, orderNumber: orders.orderNumber, total: orders.totalAmount, guestEmail: orders.guestEmail, email: users.email, customerId: orders.customerId, review: orders.requiresDesignReview })
+      .from(orders)
+      .leftJoin(users, eq(users.id, orders.customerId))
+      .where(eq(orders.id, orderId));
+    if (!o) return;
+    await notifyStaffWith(db, ["orders.view"], {
+      type: "order.new",
+      title: `New order ${o.orderNumber}`,
+      body: `${(o.total / 100).toLocaleString("en-IN", { style: "currency", currency: "INR" })}${o.review ? " · has custom designs to review" : ""}`,
+      link: `/orders/${o.id}`,
+    });
+    const link = o.customerId ? `/orders/${o.orderNumber}` : guestToken ? `/orders/${o.orderNumber}?t=${guestToken}` : null;
+    await emailOrderUpdate(kind, { orderNumber: o.orderNumber, to: o.email ?? o.guestEmail, total: o.total, link });
+  } catch (err) {
+    console.error("[checkout] announce failed:", (err as Error).message);
+  }
 }
 
 function contactFor(o: typeof orders.$inferSelect, customer: { email: string; name: string } | null) {
@@ -335,6 +364,13 @@ export async function retryPayment(access: OrderAccess, orderId: string, gateway
 
 // ============================================================ mark as paid
 
+/** markPaid in its own transaction, then (first time only) notify staff and email the customer. */
+async function markPaidAndAnnounce(rzpOrderId: string, pay: { id: string; amount: number; method: string | null }) {
+  const r = await db.transaction((tx) => markPaid(tx, rzpOrderId, pay));
+  if (!r.already) await announceOrder(r.orderId, "paid");
+  return r;
+}
+
 /**
  * Marks an order paid after a verified capture. Idempotent: safe to call from
  * both the browser callback and the webhook, in any order, any number of times.
@@ -383,7 +419,7 @@ export async function verifyRazorpayPayment(access: OrderAccess, orderId: string
   if (pay.orderId !== input.razorpayOrderId) throw new ValidationError("This payment doesn't belong to this order.");
   if (pay.status === "authorized") pay = await gateway.capturePayment(pay.id, p.amount);
   if (pay.status !== "captured") throw new ConflictError("The payment hasn't completed. Please try again.");
-  await db.transaction((tx) => markPaid(tx, input.razorpayOrderId, pay));
+  await markPaidAndAnnounce(input.razorpayOrderId, pay);
   return getOrder(access, o.id);
 }
 
@@ -415,7 +451,7 @@ export async function handleRazorpayWebhook(rawBody: string, signature: string |
     const pay = evt.payload?.payment?.entity;
     if (pay?.order_id && (evt.event === "payment.captured" || evt.event === "order.paid")) {
       const [known] = await db.select({ id: payments.id }).from(payments).where(eq(payments.razorpayOrderId, pay.order_id));
-      if (known) await db.transaction((tx) => markPaid(tx, pay.order_id, { id: pay.id, amount: pay.amount, method: pay.method ?? null }));
+      if (known) await markPaidAndAnnounce(pay.order_id, { id: pay.id, amount: pay.amount, method: pay.method ?? null });
     } else if (pay?.order_id && evt.event === "payment.failed") {
       await db
         .update(payments)
@@ -453,7 +489,7 @@ export async function releaseExpiredHolds(gateway: PaymentGateway | null = razor
       try {
         const paid = (await gateway.listOrderPayments(p.razorpayOrderId)).find((x) => x.status === "captured");
         if (paid) {
-          await db.transaction((tx) => markPaid(tx, p.razorpayOrderId!, paid));
+          await markPaidAndAnnounce(p.razorpayOrderId!, paid);
           continue;
         }
       } catch (err) {
