@@ -175,3 +175,14 @@ a {
 button, .btn-pill {
   font-family: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Page-change loader (components/navigation-loader.tsx): only appears if navigation takes > 350 ms. */
+.nav-loader {
+  opacity: 0;
+  animation: nav-loader-in 0.2s ease-out 0.35s forwards;
+}
+@keyframes nav-loader-in {
+  to {
+    opacity: 1;
+  }
+}

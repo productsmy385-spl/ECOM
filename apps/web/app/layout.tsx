@@ -4,6 +4,8 @@ import { clerkAppearance } from "@ecom/ui/clerk-appearance";
 import { designFontVariables } from "@ecom/ui/design-fonts";
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
+import { Suspense } from "react";
+import { NavigationLoader } from "@/components/navigation-loader";
 import { Preloader } from "@/components/preloader";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -47,6 +49,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en-IN" className={`${sora.variable} ${inter.variable} ${designFontVariables}`} style={themeVars} data-template={site.template}>
       <body className="flex min-h-screen flex-col antialiased">
         <Preloader />
+        <Suspense>
+          <NavigationLoader />
+        </Suspense>
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">
           Skip to content
         </a>
