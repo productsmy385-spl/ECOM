@@ -9,7 +9,7 @@ import { type AdminProductListItem, type CatalogOptions, type Paginated, rupees 
 import { ikThumb } from "@/lib/imagekit-upload";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { ImageOff, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 
 const STATUS: Record<AdminProductListItem["status"], { label: string; variant: "success" | "warning" | "outline" }> = {
@@ -55,7 +55,8 @@ const columns: DataColumn<AdminProductListItem>[] = [
 
 export function ProductsList() {
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const urlParams = useSearchParams();
+  const [q, setQ] = useState(urlParams.get("q") ?? "");
   const [status, setStatus] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [page, setPage] = useState(1);

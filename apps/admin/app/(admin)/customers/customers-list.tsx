@@ -10,7 +10,7 @@ import type { CustomerListItem } from "@ecom/services";
 import { formatPaise } from "@ecom/ui/format";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 
 const columns: DataColumn<CustomerListItem>[] = [
@@ -32,7 +32,8 @@ const columns: DataColumn<CustomerListItem>[] = [
 
 export function CustomersList() {
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const urlParams = useSearchParams();
+  const [q, setQ] = useState(urlParams.get("q") ?? "");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const dq = useDeferredValue(q);

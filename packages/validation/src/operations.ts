@@ -65,9 +65,21 @@ export const ORDER_STATUS_LABEL: Record<OrderStatusValue, string> = {
   refunded: "Refunded",
 };
 
+/** Status groups used by the Orders page tabs (DropX-style). */
+export const ORDER_STAGES = {
+  awaiting_payment: ["payment_pending"],
+  processing: ["confirmed", "design_review", "design_approved", "production", "quality_check", "packed", "ready_for_dispatch"],
+  shipping: ["shipped", "out_for_delivery"],
+  delivered: ["delivered"],
+  returns: ["return_requested", "returned", "refunded"],
+  cancelled: ["cancelled"],
+} as const satisfies Record<string, readonly OrderStatusValue[]>;
+export type OrderStage = keyof typeof ORDER_STAGES;
+
 export const orderListQuery = z.object({
   q: z.string().trim().max(80).optional(),
   status: z.enum(ORDER_STATUSES).optional(),
+  stage: z.enum(Object.keys(ORDER_STAGES) as [OrderStage, ...OrderStage[]]).optional(),
   payment: z.enum(["created", "authorized", "captured", "failed", "refunded", "partially_refunded"]).optional(),
   method: z.enum(["razorpay", "cod"]).optional(),
   from: z.iso.date().optional(),

@@ -11,11 +11,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ShellProvider user={user} initialCollapsed={collapsed}>
-      <div className="flex h-screen overflow-hidden">
+      <div className="relative flex h-dvh overflow-hidden">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Header />
-          <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <main className="relative flex-1 overflow-y-auto p-4 lg:p-6">
             <div className="mx-auto w-full max-w-[1440px]">
               {children}
               <Footer />

@@ -37,7 +37,7 @@ export async function getDashboard(ctx: ServiceContext): Promise<DashboardData> 
       })
       .from(orders)
       .where(scope),
-    db.select({ n: sql<number>`count(*)::int` }).from(inventory).innerJoin(productVariants, eq(productVariants.id, inventory.variantId)).where(and(isNull(productVariants.deletedAt), sql`${inventory.onHand} - ${inventory.reserved} <= ${inventory.minStock}`)),
+    db.select({ n: sql<number>`count(*)::int` }).from(inventory).innerJoin(productVariants, eq(productVariants.id, inventory.variantId)).where(and(isNull(productVariants.deletedAt), sql`${inventory.onHand} - ${inventory.reserved} <= ${inventory.minStock}`, sql`exists (select 1 from products p where p.id = ${productVariants.productId} and p.deleted_at is null)`)),
     db.select({ n: sql<number>`count(*)::int` }).from(customerDesigns).where(and(isNull(customerDesigns.deletedAt), inArray(customerDesigns.status, ["submitted", "in_review"]))),
     seeOrders
       ? db.select({ status: orders.status, count: sql<number>`count(*)::int` }).from(orders).where(scope).groupBy(orders.status)

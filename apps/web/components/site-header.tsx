@@ -136,7 +136,7 @@ export async function SiteHeader() {
           </nav>
 
           <div className="ml-auto flex items-center gap-0.5 lg:ml-0">
-            <SearchOverlay categories={cats.map((c) => ({ slug: c.slug, name: c.name }))} />
+            <SearchOverlay />
             <AccountMenu name={customer?.name ?? null} />
             <WishlistHeaderLink />
             <CartHeaderLink count={bagCount} />

@@ -39,6 +39,8 @@ import {
   orderStatusChangeSchema,
   type OrderStatusValue,
   type Paginated,
+  ORDER_STAGES,
+  type OrderStage,
   refundSchema,
   type ShippingAddress,
 } from "@ecom/validation";
@@ -77,6 +79,7 @@ export async function listOrdersAdmin(ctx: ServiceContext, raw: unknown): Promis
   const q = orderListQuery.parse(raw);
   const filters: (SQL | undefined)[] = [visibility(ctx.actor)];
   if (q.status) filters.push(eq(orders.status, q.status));
+  if (q.stage) filters.push(inArray(orders.status, [...ORDER_STAGES[q.stage]]));
   if (q.payment) filters.push(eq(orders.paymentStatus, q.payment));
   if (q.method) filters.push(eq(orders.paymentProvider, q.method));
   if (q.from) filters.push(gte(orders.placedAt, new Date(`${q.from}T00:00:00+05:30`)));
@@ -525,6 +528,8 @@ export interface OrderSummary {
   awaitingPayment: number;
   /** Paid order value (paise); null when the actor can't see money figures. */
   revenue: number | null;
+  /** Order count per Orders-page tab. */
+  stages: Record<OrderStage, number>;
 }
 
 /** Headline figures for the Orders page, within what this actor may see. */
@@ -541,5 +546,9 @@ export async function orderSummary(ctx: ServiceContext): Promise<OrderSummary> {
     .from(orders)
     .where(visibility(ctx.actor));
   const money = canAny(ctx.actor, ["payments.view", "reports.view"]);
-  return { total: r?.total ?? 0, inProgress: r?.inProgress ?? 0, delivered: r?.delivered ?? 0, awaitingPayment: r?.awaitingPayment ?? 0, revenue: money ? Number(r?.revenue ?? 0) : null };
+  const byStatus = await db.select({ status: orders.status, n: sql<number>`count(*)::int` }).from(orders).where(visibility(ctx.actor)).groupBy(orders.status);
+  const stages = Object.fromEntries(
+    (Object.keys(ORDER_STAGES) as OrderStage[]).map((k) => [k, byStatus.filter((b) => (ORDER_STAGES[k] as readonly string[]).includes(b.status)).reduce((a, b) => a + b.n, 0)]),
+  ) as Record<OrderStage, number>;
+  return { total: r?.total ?? 0, inProgress: r?.inProgress ?? 0, delivered: r?.delivered ?? 0, awaitingPayment: r?.awaitingPayment ?? 0, revenue: money ? Number(r?.revenue ?? 0) : null, stages };
 }

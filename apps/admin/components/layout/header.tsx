@@ -2,12 +2,13 @@
 
 import { cn } from "@/lib/utils";
 import { Maximize2, Menu, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
+import { GlobalSearch } from "./global-search";
 import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 import { useTheme } from "next-themes";
 import { useShell } from "./shell-context";
 
-// Notifications bell (Phase 8). Global search arrives with reports (Phase 9).
+// DropX header: sidebar toggle, global search (Ctrl K), fullscreen, notifications, theme, user.
 export function Header() {
   const { isCollapsed, setOpen, toggleCollapsed } = useShell();
   const { resolvedTheme, setTheme } = useTheme();
@@ -38,7 +39,9 @@ export function Header() {
           )}
         </button>
 
-        <div className="flex-1" />
+        <div className="flex min-w-0 flex-1">
+          <GlobalSearch />
+        </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2">

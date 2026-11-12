@@ -118,24 +118,6 @@ a {
   }
 }
 
-/* Full-screen search: fades in, the panel glides up from slightly below. */
-.search-overlay {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s, visibility 0s 0.3s;
-}
-.search-overlay[data-open="true"] {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.3s, visibility 0s;
-}
-.search-overlay .search-panel {
-  transform: translateY(2.5rem);
-  transition: transform 0.3s ease-out;
-}
-.search-overlay[data-open="true"] .search-panel {
-  transform: none;
-}
 /* Category links underline in from below. */
 .underline-rise {
   position: relative;
@@ -194,9 +176,7 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .reveal,
-  .card-actions,
-  .search-overlay,
-  .search-overlay .search-panel {
+  .card-actions {
     transition: none;
     transform: none;
   }

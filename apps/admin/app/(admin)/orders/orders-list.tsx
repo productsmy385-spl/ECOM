@@ -6,10 +6,11 @@ import { type DataColumn, DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { api, qs } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
 import { formatDateTime, type Paginated } from "@/lib/api-types";
 import type { AdminOrderListItem } from "@ecom/services";
 import { formatPaise } from "@ecom/ui/format";
-import { ORDER_STATUS_LABEL, ORDER_STATUSES } from "@ecom/validation";
+import { ORDER_STATUS_LABEL, ORDER_STATUSES, type OrderStage } from "@ecom/validation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Palette, Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -46,17 +47,28 @@ const columns: DataColumn<AdminOrderListItem>[] = [
   { key: "total", header: "Total", className: "text-right", cell: (o) => <span className="font-semibold tabular-nums">{formatPaise(o.totalAmount)}</span> },
 ];
 
-export function OrdersList() {
+const STAGE_TABS: { key: OrderStage | ""; label: string; dot: string }[] = [
+  { key: "", label: "All", dot: "bg-foreground/40" },
+  { key: "awaiting_payment", label: "Awaiting payment", dot: "bg-warning" },
+  { key: "processing", label: "Processing", dot: "bg-primary" },
+  { key: "shipping", label: "Shipped", dot: "bg-info" },
+  { key: "delivered", label: "Delivered", dot: "bg-success" },
+  { key: "returns", label: "Returns", dot: "bg-highlight" },
+  { key: "cancelled", label: "Cancelled", dot: "bg-destructive" },
+];
+
+export function OrdersList({ stages }: { stages?: Record<OrderStage, number> }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(params.get("q") ?? "");
   const [status, setStatus] = useState(params.get("status") ?? "");
+  const [stage, setStage] = useState<OrderStage | "">((params.get("stage") as OrderStage) ?? "");
   const [method, setMethod] = useState("");
   const [page, setPage] = useState(1);
   const dq = useDeferredValue(q);
   const list = useQuery({
-    queryKey: ["orders", { q: dq, status, method, page }],
-    queryFn: () => api<Paginated<AdminOrderListItem>>(`/orders${qs({ q: dq, status, method, page, pageSize: 20 })}`),
+    queryKey: ["orders", { q: dq, status, stage, method, page }],
+    queryFn: () => api<Paginated<AdminOrderListItem>>(`/orders${qs({ q: dq, status, stage, method, page, pageSize: 20 })}`),
     placeholderData: keepPreviousData,
   });
 
@@ -78,6 +90,7 @@ export function OrdersList() {
           value={status}
           onChange={(e) => {
             setStatus(e.target.value);
+            setStage("");
             setPage(1);
           }}
         >
@@ -101,6 +114,35 @@ export function OrdersList() {
           <option value="cod">Cash on delivery</option>
         </Select>
       </div>
+      {stages && (
+        <div role="tablist" aria-label="Order stage" className="flex flex-wrap gap-2">
+          {STAGE_TABS.map((t) => {
+            const n = t.key ? stages[t.key] : Object.values(stages).reduce((a, b) => a + b, 0);
+            const on = stage === t.key && !status;
+            return (
+              <button
+                key={t.key || "all"}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                onClick={() => {
+                  setStage(t.key);
+                  setStatus("");
+                  setPage(1);
+                }}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  on ? "bg-primary text-primary-foreground shadow-card" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", on ? "bg-primary-foreground" : t.dot)} aria-hidden="true" />
+                {t.label}
+                <span className={cn("rounded-full px-1.5 text-2xs font-semibold tabular-nums", on ? "bg-white/20" : "bg-muted")}>{n}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
       <DataTable
         caption="Orders"
         columns={columns}

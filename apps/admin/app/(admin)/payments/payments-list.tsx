@@ -9,7 +9,7 @@ import type { listPaymentsAdmin } from "@ecom/services";
 import { formatPaise } from "@ecom/ui/format";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 
 type Row = Awaited<ReturnType<typeof listPaymentsAdmin>>["items"][number];
@@ -24,7 +24,8 @@ const columns: DataColumn<Row>[] = [
 
 export function PaymentsList() {
   const router = useRouter();
-  const [q, setQ] = useState("");
+  const urlParams = useSearchParams();
+  const [q, setQ] = useState(urlParams.get("q") ?? "");
   const [page, setPage] = useState(1);
   const dq = useDeferredValue(q);
   const list = useQuery({ queryKey: ["payments", { q: dq, page }], queryFn: () => api<Paginated<Row>>(`/payments${qs({ q: dq, page, pageSize: 20 })}`), placeholderData: keepPreviousData });

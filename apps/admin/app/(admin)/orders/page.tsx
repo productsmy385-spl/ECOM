@@ -29,7 +29,7 @@ export default async function OrdersPage() {
         <GradientCard title="Delivered" value={formatNumberIN(s.delivered)} icon={<CheckCircle2 />} variant="success" hint="Completed orders" />
       </section>
       <Suspense>
-        <OrdersList />
+        <OrdersList stages={s.stages} />
       </Suspense>
     </div>
   );

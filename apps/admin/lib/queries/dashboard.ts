@@ -100,7 +100,10 @@ const QUERIES: Record<MetricKey, () => Promise<number>> = {
     const [r] = await db
       .select({ v: count() })
       .from(inventory)
-      .where(sql`${inventory.onHand} - ${inventory.reserved} <= ${inventory.minStock}`);
+      // Same rule as the Inventory page: live variants of live products only.
+      .where(sql`${inventory.onHand} - ${inventory.reserved} <= ${inventory.minStock}
+                 and exists (select 1 from product_variants v join products p on p.id = v.product_id
+                              where v.id = "inventory"."variant_id" and v.deleted_at is null and p.deleted_at is null)`);
     return r?.v ?? 0;
   },
   pendingDesigns: async () => {
