@@ -7,11 +7,11 @@ interface LogoMarkProps {
   showWordmark?: boolean;
 }
 
-/** Adira mark (photo frame + A with a heart crossbar) with the "Admin" wordmark. */
+/** Adira mark (shopping-bag "A" with swoosh) with the "Admin" wordmark. */
 export function LogoMark({ className, showWordmark = true }: LogoMarkProps) {
   return (
     <div className={cn("flex items-center gap-2.5", className)}>
-      <AdiraMark size={36} className="shrink-0" />
+      <AdiraMark size={40} className="shrink-0" />
       {showWordmark && (
         <div className="min-w-0">
           <p className="truncate font-display text-[15px] font-bold leading-none text-foreground">

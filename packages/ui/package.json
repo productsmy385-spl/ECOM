@@ -11,6 +11,7 @@
     "./design-fonts": "./src/design/fonts.ts",
     "./clerk-appearance": "./src/clerk-appearance.ts",
     "./logo": "./src/logo.tsx",
+    "./loader": "./src/loader.tsx",
     "./website-templates": "./src/website-templates.ts",
     "./security-headers": "./src/security-headers.ts"
   },

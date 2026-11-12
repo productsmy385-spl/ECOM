@@ -1,28 +1,11 @@
-import { Skeleton, SkeletonCard, SkeletonTable } from "@/components/ui/skeleton";
+import { AdiraLoader } from "@ecom/ui/loader";
 
-// Shown while an admin page streams in during navigation
+/** Shown while an admin page streams in during navigation: the animated Adira logo. */
 export default function AdminLoading() {
   return (
-    <div role="status" aria-label="Loading page" className="space-y-6">
-      <div className="space-y-2">
-        <Skeleton className="h-3 w-40" />
-        <Skeleton className="h-6 w-56" />
-        <Skeleton className="h-3 w-72" />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28" />
-        ))}
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <SkeletonTable rows={5} />
-        </div>
-        <SkeletonCard />
-      </div>
-      <span className="sr-only">Loading…</span>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+      <AdiraLoader size={76} label="Loading page" />
+      <p className="text-sm text-muted-foreground">Loading…</p>
     </div>
   );
 }

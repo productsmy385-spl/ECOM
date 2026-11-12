@@ -18,7 +18,7 @@ import { WishlistHeaderLink } from "./wishlist";
 export function Logo() {
   return (
     <Link href="/" className="flex shrink-0 items-center" aria-label={`${brand.name} home`}>
-      <AdiraLogo size={38} name={brand.name} />
+      <AdiraLogo size={42} name={brand.name} />
     </Link>
   );
 }

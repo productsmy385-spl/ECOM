@@ -39,7 +39,7 @@ export async function SiteFooter() {
       <div className="container-store grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
         <div>
           <Link href="/" aria-label={`${brand.name} home`}>
-            <AdiraLogo size={40} name={brand.name} />
+            <AdiraLogo size={46} name={brand.name} />
           </Link>
           <p className="mt-3 max-w-xs text-sm text-white/70">{site.tagline || "Custom photo frames and handmade resin art frames, designed by you."}</p>
           {(contact.phone || wa || contact.address || contact.hours) && (

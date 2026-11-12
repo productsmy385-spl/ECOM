@@ -1,9 +1,10 @@
 "use client";
 
+import { AdiraLoader } from "@ecom/ui/loader";
 import { useEffect, useState } from "react";
 
 /**
- * Brief branded loader over the first page of a visit. Hidden as soon as the
+ * Brief branded loader (the animated Adira logo) over the first page of a visit. Hidden as soon as the
  * page has loaded (and at most after 2.5 s); not shown again in the session.
  */
 export function Preloader() {
@@ -38,11 +39,7 @@ export function Preloader() {
       aria-hidden="true"
       className={`fixed inset-0 z-[100] flex items-center justify-center bg-white/90 transition-opacity duration-300 ${state === "hiding" ? "opacity-0" : "opacity-100"}`}
     >
-      <div className="flex h-10 items-end gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="loader-bar block h-10 w-2.5 rounded-full bg-primary" style={{ animationDelay: `${i * 0.15}s` }} />
-        ))}
-      </div>
+      <AdiraLoader size={96} label="" />
     </div>
   );
 }
